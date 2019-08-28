@@ -1,69 +1,57 @@
 ﻿#ifndef __SPIN_LOCK_h__
 #define __SPIN_LOCK_h__
-#include "atomic_ops.h"
+#include <atomic>
 
 class CSpinLock
 {
+	std::atomic_flag m_flag = ATOMIC_FLAG_INIT;
 public:
 	CSpinLock()
 	{
-		m_Value = 0;
+		
 	};
 
 	~CSpinLock()
 	{
-		m_Value = 0;
 	};
-
-
-public:
-	UINT64 m_Value;
 
 	void Lock()
 	{
-		for (unsigned k = 0; !TryLock(); ++k)
+		for (unsigned k = 0; TryLock(); ++k)
 		{
-			if (k % 32 == 0)
+			if (k % 1024 == 0)
 			{
-#ifdef WIN32
-				::Sleep(0);
-#else
-				struct timespec req;
-				req.tv_sec = 0;
-				req.tv_nsec = 0;
-				if (-1 == nanosleep(&req, NULL))
-				{
-					return;
-				}
-#endif
+				CommonFunc::Sleep(1);
 			}
 		}
 
 		return ;
 	}
 
-	bool TryLock()
+	bool TryLockTimes(unsigned nTimes)
 	{
-		UINT64 nOne = 1, nZero = 0;
-		if (CAS(&m_Value, nZero, nOne))
+		for (unsigned k = 0; TryLock(); ++k)
 		{
-			return true;
+			if (k >= nTimes)
+			{
+				return false;
+			}
 		}
 
-		return false;
+		return true;
+	}
+
+	bool TryLock()
+	{
+		bool bRet = m_flag.test_and_set(/*std::memory_order_acquire*/);
+
+		return bRet;
 	}
 
 	void Unlock()
 	{
-		UINT64 nOne = 1, nZero = 0;
-		for (unsigned k = 0; k < 32; ++k)
-		{
-			if (CAS(&m_Value, nOne, nZero))
-			{
-				return;
-			}
-		}
-
+		m_flag.clear(/*std::memory_order_release*/);
+	
 		return ;
 	}
 

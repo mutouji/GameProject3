@@ -44,7 +44,7 @@ public:
 
 	BOOL	SetConnectionOK(BOOL bOk);
 
-	BOOL    Clear();
+	BOOL    Reset();
 
 	BOOL    SendBuffer(IDataBuffer*	pBuff);
 
@@ -81,7 +81,9 @@ public:
 
 	UINT64						m_LastRecvTick;
 
-	ArrayLockFreeQueue < IDataBuffer*, 1 << 10 > m_SendBuffList;
+	ArrayLockFreeQueue < IDataBuffer* > m_SendBuffList;
+	
+	IDataBuffer*				m_pSendingBuffer;
 };
 
 

@@ -4,6 +4,7 @@
 #include "SceneLogic/SceneLogic_Base.h"
 #include "../Message/Msg_Game.pb.h"
 #include "GameObject/BulletObject.h"
+#include "../ServerData/serverStruct.h"
 class MonsterCreator;
 
 class CScene
@@ -13,37 +14,42 @@ public:
 
 	~CScene();
 
-	BOOL	        DispatchPacket(NetPacket* pNetPack);
+	BOOL            DispatchPacket(NetPacket* pNetPack);
 
-	BOOL			Init(UINT32 dwCopyID, UINT32 dwCopyGuid, UINT32 dwCopyType, UINT32 dwPlayerNum);
+	BOOL            Init(UINT32 dwCopyID, UINT32 dwCopyGuid, UINT32 dwCopyType, UINT32 dwPlayerNum, UINT64 uCreateKey);
 
-	BOOL	        Uninit();
+	BOOL            Uninit();
+
+	BOOL            Reset();
 
 	UINT32	        GetCopyGuid();
 
 	UINT32          GetCopyID();
 
-	UINT32			GetCopyType();
+	UINT32          GetCopyType();
 
 	BOOL            OnUpdate( UINT64 uTick );
 
-	BOOL			CreateSceneLogic(UINT32 dwCopyType);
+	BOOL            CreateSceneLogic(UINT32 dwCopyType);
 
-	BOOL			DestroySceneLogic(UINT32 dwCopyType);
+	BOOL            DestroySceneLogic(UINT32 dwCopyType);
 
 	BOOL            BroadNewObject(CSceneObject* pSceneObject);
-
-	BOOL            BroadNewBullet(CBulletObject* pBulletObject);
 
 	BOOL            BroadMessage(UINT32 dwMsgID, const google::protobuf::Message& pdata);
 
 	BOOL            BroadRemoveObject(CSceneObject* pSceneObject);
 
-	BOOL	        SendAllNewObjectToPlayer(CSceneObject* pSceneObject);
+	BOOL            SendAllNewObjectToPlayer(CSceneObject* pSceneObject);
 
-	BOOL			BroadDieNotify(UINT64 uObjectID);
+	BOOL            BroadDieNotify(UINT64 uObjectID);
 
-	BOOL            SyncObjectState();
+	BOOL            UpdateBulletStatus(UINT64 uTick);
+
+	BOOL            BackToMainCity(UINT64 uRoleID);
+
+	BOOL            SyncObjectStatus();
+
 	INT32	        GetPlayerCount();
 	INT32			GetConnectCount();
 
@@ -55,9 +61,12 @@ public:
 	VOID		    DeleteMonster(UINT64 uID);
 
 	CSceneObject*   GetSceneObject(UINT64 uID);
+	BOOL			RemoveDeadObject();
 
 	BOOL			UpdateAiController(UINT64 uFilterID);
 	UINT64			SelectController(UINT64 uFilterID);
+
+	BOOL			SelectTargets(std::vector<CSceneObject*>& vTargets, UINT64 uExcludeID, UINT32 dwCamp, EHitShipType hitType, Vector3D hitPos, FLOAT fHitDir, ERangeType rangeType, FLOAT RangeParams[5]);
 
 	//在单人PVE情况下，副本应该只有一个人
 	CSceneObject*   GetOwnPlayer();
@@ -75,19 +84,22 @@ public:
 	CSceneObject*	CreateSummon( UINT32 dwActorID, UINT64 uSummonerID, UINT32 dwCamp, FLOAT x, FLOAT y, FLOAT z, FLOAT ft);
 
 	//创建子弹对象
-	CBulletObject*	CreateBullet(UINT32 dwBulletID, UINT32 dwType, FLOAT Angle, FLOAT Fix, FLOAT Muti);
+	CBulletObject*	CreateBullet(UINT32 dwBulletID, StBulletInfo* pBulletInfo, CSkillObject* pSkillObject, Vector3D startPos);
 
 	BOOL			IsCampAllDie(UINT32 dwCamp);  //用于结算，判断阵营是否全部死亡.
 	BOOL			IsMonsterAllDie();            //用于判断下一波怪是否需要刷出.
+	BOOL            IsMonsterAllGen();            //是否所有怪物己经出尽
 
 	//解析场景配制文件
 	BOOL			ReadSceneXml();
 public:
 	BOOL			IsFinished();
+	VOID			SetFinished();
 	BOOL            IsAllDataReady();
 	BOOL			IsAllLoginReady();
 	UINT64			GetStartTime();
 	UINT64			GetCreateTime();
+	UINT64			GetTotalTime();
 	UINT64          GetLastTick();
 	BOOL			SetLastTick(UINT64 uTick);
 	UINT64			GenNewGuid();
@@ -98,27 +110,35 @@ public:
 	UINT32			m_dwCopyGuid;	//当前副本实例ID
 	UINT32			m_dwCopyID;		//当前副本TYPE
 	UINT32			m_dwCopyType;	//逻辑类型
-	UINT64          m_dwCreateTime; //副本创建时间
-	UINT64			m_dwStartTime;  //副本开始时间
+	UINT64          m_uCreateTime;  //副本创建时间
+	UINT64			m_uStartTime;   //副本开始时间
+	UINT64			m_uTotalTime;	//副本持续时间
 	UINT64			m_dwLastTick;	//上一个tick时间
 	UINT64			m_uMaxGuid;	    //场景里的最大GUID
+	UINT64			m_uCreateKey;	//创建副本的专用参数
+	BOOL			m_bFinished;	//副本是否完成
 	SceneLogicBase*	m_pSceneLogic;
 	MonsterCreator*	m_pMonsterCreator;
 
-	std::map<UINT64, CSceneObject*>	 m_PlayerMap;		//玩家管理器
-	std::map<UINT64, CSceneObject*>  m_MonsterMap;      //怪物管理器
-	std::map<UINT64, CBulletObject*> m_BulletMap;		//子弹管理器
+	std::map<UINT64, CSceneObject*>	 m_mapPlayer;		//玩家管理器
+	std::map<UINT64, CSceneObject*>  m_mapMonster;      //怪物管理器
+	std::map<UINT64, CBulletObject*> m_mapBullet;		//子弹管理器
+
 	//////////////////////////////////////////////////////////////////////////
-	//攻击伤害计算
+	//伤害效果
+	HitEffectNtf    m_HitEffectNtf;
+	BOOL            AddHitEffect(UINT64 uAttackerID, UINT64 uTargetID, INT32 nHurtValue, BOOL bCritHit);
+	BOOL            BroadHitEffect();
 
-	BOOL ProcessActionItem(const ActionReqItem& Item);
-
+	//////////////////////////////////////////////////////////////////////////
+	BOOL SetBattleResult(UINT32 dwCamp, ECopyResult nBattleResult);
 	BOOL SendBattleResult();
 	//*********************消息处理定义开始******************************
 public:
 	BOOL OnMsgTransRoleDataReq(NetPacket* pNetPacket);
 	BOOL OnMsgEnterSceneReq(NetPacket* pNetPacket);
 	BOOL OnMsgLeaveSceneReq(NetPacket* pNetPacket);
+	BOOL OnMsgAbortSceneReq(NetPacket* pNetPacket);
 	BOOL OnMsgRoleDisconnect(NetPacket* pNetPacket);
 	BOOL OnMsgHeartBeatReq(NetPacket* pNetPacket);
 	BOOL OnMsgUseHpBottleReq(NetPacket* pNetPacket);
@@ -126,6 +146,9 @@ public:
 	BOOL OnMsgBattleChatReq(NetPacket* pNetPacket);
 	BOOL OnMsgObjectActionReq(NetPacket* pNetPacket);
 	BOOL OnMsgSkillCastReq(NetPacket* pNetPacket);
+	BOOL OnMsgObjectChangeNtf(NetPacket* pNetPacket);
+	BOOL OnMsgMountRidingReq(NetPacket* pNetPacket);
+	BOOL OnMsgRoleRebornReq(NetPacket* pNetPacket);
 	//*********************消息处理定义结束******************************
 };
 

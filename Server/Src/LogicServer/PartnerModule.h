@@ -29,7 +29,10 @@ public:
 
 	BOOL CalcFightValue(INT32 nValue[PROPERTY_NUM], INT32 nPercent[PROPERTY_NUM], INT32& FightValue);
 
-	BOOL	DispatchPacket(NetPacket* pNetPacket);
+	BOOL DispatchPacket(NetPacket* pNetPacket);
+
+	BOOL ToTransferData(TransferDataItem *pTransItem);
+
 public:
 	UINT64 AddPartner(UINT32 dwPartnerID);
 
@@ -38,7 +41,14 @@ public:
 	PartnerDataObject* GetPartnerByGuid(UINT64 uGuid);
 
 public:
+	//*********************消息处理定义开始******************************
+	BOOL OnMsgSetupPartnerReq(NetPacket* pNetPacket);
+	BOOL OnMsgUnsetPartnerReq(NetPacket* pNetPacket);
+	//*********************消息处理定义结束******************************
+
+public:
 	std::map<UINT64, PartnerDataObject*>m_mapPartnerData;
+	PartnerDataObject* m_vtSetupPartner[PARTNER_MAX_NUM];
 
 	std::set<UINT64> m_setChange;
 	std::set<UINT64> m_setRemove;

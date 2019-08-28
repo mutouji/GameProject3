@@ -20,11 +20,16 @@ DOUBLE StringToDouble(char* pStr);
 std::string DoubleToString(DOUBLE dValue);
 
 std::string IntToString(UINT32 nValue);
+
 std::string IntToString(INT32 nValue);
+
 std::string IntToString(UINT64 nValue);
+
 std::string IntToString(INT64 nValue);
 
 BOOL  StringToPos(char* pStr, FLOAT& x, FLOAT& y, FLOAT& z);
+
+BOOL  StringToBox(char* pStr, FLOAT& left, FLOAT& top, FLOAT& right, FLOAT& bottom);
 
 //浮点到字符串， nPrecision 保留的最大小数的位数， bRound 是否四舍五入
 std::string FloatToString(FLOAT fValue, INT32 nPrecision = -1, BOOL bRound = FALSE);
@@ -48,6 +53,10 @@ BOOL SpliteString(std::string strSrc,  std::string strDelim, std::vector<std::st
 BOOL SpliteString(std::string strSrc, char cDelim, std::vector<std::string>& vtStr);
 
 BOOL ReplaceString(std::string& str, const std::string& pattern, const std::string& newpat);
+
+BOOL StringToVector(const char* pStrValue, INT32 IntVector[], INT32 nSize, char cDelim = ',');
+
+BOOL StringToVector(const char* pStrValue, FLOAT FloatVector[], INT32 nSize, char cDelim = ',');
 
 UINT32 VersionToInt(std::string& strVersion);
 

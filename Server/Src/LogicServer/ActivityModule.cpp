@@ -3,8 +3,8 @@
 #include "DataPool.h"
 #include "GlobalDataMgr.h"
 #include "../Message/Msg_LoginDBData.pb.h"
-#include "../ConfigData/ConfigStruct.h"
-#include "../ConfigData/ConfigData.h"
+#include "../StaticData/StaticStruct.h"
+#include "../StaticData/StaticData.h"
 
 CActivityModule::CActivityModule(CPlayerObject* pOwner): CModuleBase(pOwner)
 {
@@ -18,7 +18,7 @@ CActivityModule::~CActivityModule()
 
 BOOL CActivityModule::OnCreate(UINT64 u64RoleID)
 {
-	std::map <UINT32, StActivityInfo>& mapActivityList = CConfigData::GetInstancePtr()->m_mapActivityInfo;
+	std::map <UINT32, StActivityInfo>& mapActivityList = CStaticData::GetInstancePtr()->m_mapActivityInfo;
 	for(auto itor = mapActivityList.begin(); itor != mapActivityList.end(); itor ++)
 	{
 		StActivityInfo& tempInfo = itor->second;
@@ -29,7 +29,7 @@ BOOL CActivityModule::OnCreate(UINT64 u64RoleID)
 
 		if(tempInfo.ActivityType == ACT_LOGINAWARD)
 		{
-			ActivityDataObject* pTempObject = g_pActivityDataObjectPool->NewObject(TRUE);
+			ActivityDataObject* pTempObject = DataPool::CreateObject<ActivityDataObject>(ESD_ACTIVITY);
 			pTempObject->m_dwActivityID = tempInfo.ActivityID;
 			pTempObject->m_dwActivityType = ACT_LOGINAWARD;
 		}
@@ -44,7 +44,7 @@ BOOL CActivityModule::OnDestroy()
 {
 	for(auto itor = m_mapActivityData.begin(); itor != m_mapActivityData.end(); itor++)
 	{
-		itor->second->release();
+		itor->second->Release();
 	}
 
 	m_mapActivityData.clear();
@@ -54,7 +54,7 @@ BOOL CActivityModule::OnDestroy()
 
 BOOL CActivityModule::OnLogin()
 {
-	std::map <UINT32, StActivityInfo>& mapActivityList = CConfigData::GetInstancePtr()->m_mapActivityInfo;
+	std::map <UINT32, StActivityInfo>& mapActivityList = CStaticData::GetInstancePtr()->m_mapActivityInfo;
 	for(auto itor = mapActivityList.begin(); itor != mapActivityList.end(); itor ++)
 	{
 		StActivityInfo& tempInfo = itor->second;
@@ -65,7 +65,7 @@ BOOL CActivityModule::OnLogin()
 
 		if(tempInfo.ActivityType == ACT_LOGINAWARD)
 		{
-			ActivityDataObject* pTempObject = g_pActivityDataObjectPool->NewObject(TRUE);
+			ActivityDataObject* pTempObject = DataPool::CreateObject<ActivityDataObject>(ESD_ACTIVITY);
 			pTempObject->m_dwActivityID = tempInfo.ActivityID;
 			pTempObject->m_dwActivityType = ACT_LOGINAWARD;
 		}
@@ -96,9 +96,13 @@ BOOL CActivityModule::ReadFromDBLoginData(DBRoleLoginAck& Ack)
 	for(int i = 0; i < ActivityData.activitylist_size(); i++)
 	{
 		const DBActivityItem& ActivityItem = ActivityData.activitylist(i);
-		ActivityDataObject* pObject = g_pActivityDataObjectPool->NewObject(FALSE);
+		ActivityDataObject* pObject = DataPool::CreateObject<ActivityDataObject>(ESD_ACTIVITY, FALSE);
 		pObject->m_dwActivityID = ActivityItem.activityid();
 		pObject->m_uRoleID = ActivityItem.roleid();
+		pObject->m_dwActivityType = ActivityItem.activitytype();
+		pObject->m_dwDataLen = ActivityItem.datalen();
+		pObject->m_uJoinTime = ActivityItem.jointime();
+		memcpy(pObject->m_Data.m_Bytes, (void*)ActivityItem.data().c_str(), pObject->m_dwDataLen);
 		m_mapActivityData.insert(std::make_pair(pObject->m_dwActivityID, pObject));
 	}
 	return TRUE;
@@ -111,5 +115,16 @@ BOOL CActivityModule::SaveToClientLoginData(RoleLoginAck& Ack)
 
 BOOL CActivityModule::NotifyChange()
 {
+	return TRUE;
+}
+
+BOOL CActivityModule::GetRedPoint()
+{
+	for (auto itor = m_mapActivityData.begin(); itor != m_mapActivityData.end(); itor++)
+	{
+		ActivityDataObject* pDataObject = itor->second;
+
+	}
+
 	return TRUE;
 }

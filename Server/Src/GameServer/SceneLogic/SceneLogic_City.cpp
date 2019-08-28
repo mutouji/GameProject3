@@ -16,11 +16,9 @@ SceneLogic_City::~SceneLogic_City()
 
 BOOL SceneLogic_City::OnObjectCreate(CSceneObject* pObject)
 {
-	ERROR_RETURN_TRUE(pObject->m_dwCamp > CT_NONE);
-	ERROR_RETURN_TRUE(pObject->m_dwCamp < CT_CMAP_END);
 	if(pObject->GetObjType() == OT_PLAYER)
 	{
-		pObject->SetPos(m_vtBornPos[pObject->m_dwCamp].m_x, m_vtBornPos[pObject->m_dwCamp].m_y, m_vtBornPos[pObject->m_dwCamp].m_z);
+		SceneLogicBase::OnObjectCreate(pObject);
 	}
 	return TRUE;
 }
@@ -39,17 +37,22 @@ BOOL SceneLogic_City::OnPlayerEnter(CSceneObject* pPlayer)
 	return TRUE;
 }
 
-BOOL SceneLogic_City::OnPlayerLeave(CSceneObject* pPlayer)
+BOOL SceneLogic_City::OnPlayerLeave(CSceneObject* pPlayer, BOOL bDisConnect)
 {
+	m_pScene->BroadRemoveObject(pPlayer);
+
+	m_pScene->DeletePlayer(pPlayer->GetObjectGUID());
+
 	return TRUE;
 }
 
 BOOL SceneLogic_City::Update(UINT64 uTick)
 {
+
 	return TRUE;
 }
 
-BOOL SceneLogic_City::TimeUP()
+BOOL SceneLogic_City::OnTimeUP()
 {
 	return TRUE;
 }

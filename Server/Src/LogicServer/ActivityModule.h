@@ -26,7 +26,9 @@ public:
 
 	BOOL SaveToClientLoginData(RoleLoginAck& Ack);
 
-	BOOL	NotifyChange();
+	BOOL NotifyChange();
+
+	BOOL GetRedPoint();
 public:
 	//*********************消息处理定义开始******************************
 

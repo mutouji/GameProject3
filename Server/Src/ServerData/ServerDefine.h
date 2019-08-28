@@ -19,6 +19,7 @@
 //公会名长度
 #define GUILD_NAME_LEN		255
 #define GUILD_NOTICE_LEN	1024
+#define GUILD_MAX_APPLY_NUM 50
 
 //语言数
 #define MAX_LANGUAGE_NUM	15
@@ -36,14 +37,13 @@
 
 #define EQUIP_MAX_NUM	    8
 
-//副本战斗结果
-enum ECopyResult
-{
-	CR_NONE = 0,	//未结算
-	CR_WIN,         //胜利
-	CR_LOST,		//失败
-	CR_DRAW			//平局
-};
+#define PARTNER_MAX_NUM		2
+
+//定义四种状态的基本移动速度
+#define SPEED_IDLE			(0.0f)
+#define SPEED_WALK			(2.5f)
+#define SPEED_RUN			(4.0f)
+#define SPEED_FLY			(6.5f)
 
 enum EMouduleType
 {
@@ -59,7 +59,33 @@ enum EMouduleType
 	MT_ACTIVITY,
 	MT_COUNTER,
 	MT_STORE,
+	MT_SKILL,
 	MT_END
+};
+
+enum EShareData
+{
+	ESD_BEGIN,
+	ESD_ROLE,
+	ESD_GLOBAL,
+	ESD_BAG,
+	ESD_COPY,
+	ESD_EQUIP,
+	ESD_GEM,
+	ESD_PET,
+	ESD_PARTNER,
+	ESD_GUILD,
+	ESD_GUILD_MEMBER,
+	ESD_TASK,
+	ESD_MOUNT,
+	ESD_MAIL,
+	ESD_GROUP_MAIL,
+	ESD_ACTIVITY,
+	ESD_COUNTER,
+	ESD_FRIEND,
+	ESD_CHAPTER,
+	ESD_SKILL,
+	ESD_END
 };
 
 enum EAddWay
@@ -78,32 +104,11 @@ enum EActivtyType
 	ACT_DISCOUNT_SALE = 5,
 };
 
-enum EShareData
-{
-	ESD_ROLE = 1,
-	ESD_GLOBAL,
-	ESD_BAG,
-	ESD_COPY,
-	ESD_EQUIP,
-	ESD_GEM,
-	ESD_PET,
-	ESD_PARTNER,
-	ESD_GUILD,
-	ESD_GUILD_MEMBER,
-	ESD_TASK,
-	ESD_MOUNT,
-	ESD_MAIL,
-	ESD_GROUP_MAIL,
-	ESD_ACTIVITY,
-	ESD_COUNTER,
-	ESD_FRIEND,
-	ESD_CHAPTER,
-};
-
 enum EGuildPos
 {
-	EGP_MEMBER = 0,
-	EGP_LEADER = 1,
+	EGP_MEMBER		= 0,
+	EGP_LEADER		= 1,
+	EGP_VICELEADER  = 2,
 };
 
 #endif //__SERVER_STRUCT_H__

@@ -24,7 +24,7 @@ BOOL LogicSvrManager::Init()
 
 	if(!m_DBConnection.open(strHost.c_str(), strUser.c_str(), strPwd.c_str(), strDb.c_str(), nPort))
 	{
-		CLog::GetInstancePtr()->LogError("ReloadServerList Error: Can not open database!!!");
+		CLog::GetInstancePtr()->LogError("LogicSvrManager::Init Error: Can not open mysql database! Reason:%s", m_DBConnection.GetErrorMsg());
 		return FALSE;
 	}
 
@@ -72,8 +72,8 @@ BOOL LogicSvrManager::RegisterLogicServer(UINT32 dwConnID, UINT32 dwServerID, UI
 		insert(std::make_pair(dwServerID, pNode));
 
 		char szSql[SQL_BUFF_LEN] = { 0 };
-		snprintf(szSql, SQL_BUFF_LEN, "replace into server_list(id, name, port,http_port,watch_port) values(%d, '%s', %d, %d, %d);",
-		         pNode->m_dwServerID, pNode->m_strSvrName.c_str(), pNode->m_dwPort, pNode->m_dwHttpPort, pNode->m_dwWatchPort);
+		snprintf(szSql, SQL_BUFF_LEN, "replace into server_list(id, name, ip, port,http_port,watch_port,state, min_version, max_version, check_chan, check_ip) values(%d, '%s', '%s', %d, %d, %d, %d, '%s','%s','%s','%s');",
+		         pNode->m_dwServerID, pNode->m_strSvrName.c_str(), "127.0.0.1", pNode->m_dwPort, pNode->m_dwHttpPort, pNode->m_dwWatchPort, ESS_GOOD, "1.0.0", "9.0.0", "*", "*");
 		if (m_DBConnection.execSQL(szSql) < 0)
 		{
 			CLog::GetInstancePtr()->LogError("LogicSvrManager::RegisterLogicServer Error :%s", m_DBConnection.GetErrorMsg());
@@ -203,6 +203,13 @@ BOOL LogicSvrManager::ReloadServerList(UINT32 dwServerID)
 		pNode->m_strIpAddr = QueryResult.getStringField("ip", "*");
 		pNode->m_dwPort = QueryResult.getIntField("port", 0);
 		pNode->m_bDelete = FALSE;
+
+		if (pNode->m_strIpAddr.empty() || pNode->m_strIpAddr == "*")
+		{
+			CLog::GetInstancePtr()->LogError("ReloadServerList Failed, serverid:%d has no ip address!", dwSvrID);
+			return FALSE;
+		}
+
 		std::string strMinVersion = QueryResult.getStringField("min_version", "0");
 		if(strMinVersion.empty())
 		{

@@ -29,6 +29,7 @@
 #include <google/protobuf/repeated_field.h>  // IWYU pragma: export
 #include <google/protobuf/extension_set.h>  // IWYU pragma: export
 #include <google/protobuf/unknown_field_set.h>
+#include "Msg_Game.pb.h"
 // @@protoc_insertion_point(includes)
 
 namespace protobuf_Msg_5fLoginCltData_2eproto {
@@ -36,7 +37,7 @@ namespace protobuf_Msg_5fLoginCltData_2eproto {
 struct TableStruct {
   static const ::google::protobuf::internal::ParseTableField entries[];
   static const ::google::protobuf::internal::AuxillaryParseTableField aux[];
-  static const ::google::protobuf::internal::ParseTable schema[19];
+  static const ::google::protobuf::internal::ParseTable schema[21];
   static const ::google::protobuf::internal::FieldMetadata field_metadata[];
   static const ::google::protobuf::internal::SerializationTable serialization_table[];
   static const ::google::protobuf::uint32 offsets[];
@@ -78,6 +79,10 @@ void InitDefaultsCopyItemImpl();
 void InitDefaultsCopyItem();
 void InitDefaultsChapterItemImpl();
 void InitDefaultsChapterItem();
+void InitDefaultsActionItemImpl();
+void InitDefaultsActionItem();
+void InitDefaultsSkillChangeNtyImpl();
+void InitDefaultsSkillChangeNty();
 void InitDefaultsRoleLoginAckImpl();
 void InitDefaultsRoleLoginAck();
 inline void InitDefaults() {
@@ -99,9 +104,14 @@ inline void InitDefaults() {
   InitDefaultsTaskChangeNty();
   InitDefaultsCopyItem();
   InitDefaultsChapterItem();
+  InitDefaultsActionItem();
+  InitDefaultsSkillChangeNty();
   InitDefaultsRoleLoginAck();
 }
 }  // namespace protobuf_Msg_5fLoginCltData_2eproto
+class ActionItem;
+class ActionItemDefaultTypeInternal;
+extern ActionItemDefaultTypeInternal _ActionItem_default_instance_;
 class BagChangeNty;
 class BagChangeNtyDefaultTypeInternal;
 extern BagChangeNtyDefaultTypeInternal _BagChangeNty_default_instance_;
@@ -153,6 +163,9 @@ extern PetItemDefaultTypeInternal _PetItem_default_instance_;
 class RoleLoginAck;
 class RoleLoginAckDefaultTypeInternal;
 extern RoleLoginAckDefaultTypeInternal _RoleLoginAck_default_instance_;
+class SkillChangeNty;
+class SkillChangeNtyDefaultTypeInternal;
+extern SkillChangeNtyDefaultTypeInternal _SkillChangeNty_default_instance_;
 class TaskChangeNty;
 class TaskChangeNtyDefaultTypeInternal;
 extern TaskChangeNtyDefaultTypeInternal _TaskChangeNty_default_instance_;
@@ -1333,11 +1346,11 @@ class PartnerItem : public ::google::protobuf::Message /* @@protoc_insertion_poi
   ::google::protobuf::int32 starexp() const;
   void set_starexp(::google::protobuf::int32 value);
 
-  // int32 IsUsing = 8;
-  void clear_isusing();
-  static const int kIsUsingFieldNumber = 8;
-  ::google::protobuf::int32 isusing() const;
-  void set_isusing(::google::protobuf::int32 value);
+  // int32 SetPos = 8;
+  void clear_setpos();
+  static const int kSetPosFieldNumber = 8;
+  ::google::protobuf::int32 setpos() const;
+  void set_setpos(::google::protobuf::int32 value);
 
   // @@protoc_insertion_point(class_scope:PartnerItem)
  private:
@@ -1350,7 +1363,7 @@ class PartnerItem : public ::google::protobuf::Message /* @@protoc_insertion_poi
   ::google::protobuf::int32 starlevel_;
   ::google::protobuf::int32 refineexp_;
   ::google::protobuf::int32 starexp_;
-  ::google::protobuf::int32 isusing_;
+  ::google::protobuf::int32 setpos_;
   mutable int _cached_size_;
   friend struct ::protobuf_Msg_5fLoginCltData_2eproto::TableStruct;
   friend void ::protobuf_Msg_5fLoginCltData_2eproto::InitDefaultsPartnerItemImpl();
@@ -1564,11 +1577,11 @@ class MountItem : public ::google::protobuf::Message /* @@protoc_insertion_point
   ::google::protobuf::uint64 guid() const;
   void set_guid(::google::protobuf::uint64 value);
 
-  // int32 ItemID = 2;
-  void clear_itemid();
-  static const int kItemIDFieldNumber = 2;
-  ::google::protobuf::int32 itemid() const;
-  void set_itemid(::google::protobuf::int32 value);
+  // int32 MountID = 2;
+  void clear_mountid();
+  static const int kMountIDFieldNumber = 2;
+  ::google::protobuf::int32 mountid() const;
+  void set_mountid(::google::protobuf::int32 value);
 
   // int32 StrengthLvl = 3;
   void clear_strengthlvl();
@@ -1611,7 +1624,7 @@ class MountItem : public ::google::protobuf::Message /* @@protoc_insertion_point
 
   ::google::protobuf::internal::InternalMetadataWithArena _internal_metadata_;
   ::google::protobuf::uint64 guid_;
-  ::google::protobuf::int32 itemid_;
+  ::google::protobuf::int32 mountid_;
   ::google::protobuf::int32 strengthlvl_;
   ::google::protobuf::int32 refinelevel_;
   ::google::protobuf::int32 starlevel_;
@@ -2043,15 +2056,9 @@ class TaskItem : public ::google::protobuf::Message /* @@protoc_insertion_point(
 
   // accessors -------------------------------------------------------
 
-  // uint64 RoleID = 1;
-  void clear_roleid();
-  static const int kRoleIDFieldNumber = 1;
-  ::google::protobuf::uint64 roleid() const;
-  void set_roleid(::google::protobuf::uint64 value);
-
-  // uint32 TaskID = 2;
+  // uint32 TaskID = 1;
   void clear_taskid();
-  static const int kTaskIDFieldNumber = 2;
+  static const int kTaskIDFieldNumber = 1;
   ::google::protobuf::uint32 taskid() const;
   void set_taskid(::google::protobuf::uint32 value);
 
@@ -2059,7 +2066,6 @@ class TaskItem : public ::google::protobuf::Message /* @@protoc_insertion_point(
  private:
 
   ::google::protobuf::internal::InternalMetadataWithArena _internal_metadata_;
-  ::google::protobuf::uint64 roleid_;
   ::google::protobuf::uint32 taskid_;
   mutable int _cached_size_;
   friend struct ::protobuf_Msg_5fLoginCltData_2eproto::TableStruct;
@@ -2268,33 +2274,27 @@ class CopyItem : public ::google::protobuf::Message /* @@protoc_insertion_point(
 
   // accessors -------------------------------------------------------
 
-  // uint64 RoleID = 1;
-  void clear_roleid();
-  static const int kRoleIDFieldNumber = 1;
-  ::google::protobuf::uint64 roleid() const;
-  void set_roleid(::google::protobuf::uint64 value);
-
-  // uint32 CopyID = 2;
+  // uint32 CopyID = 1;
   void clear_copyid();
-  static const int kCopyIDFieldNumber = 2;
+  static const int kCopyIDFieldNumber = 1;
   ::google::protobuf::uint32 copyid() const;
   void set_copyid(::google::protobuf::uint32 value);
 
-  // int32 StarNum = 3;
+  // int32 StarNum = 2;
   void clear_starnum();
-  static const int kStarNumFieldNumber = 3;
+  static const int kStarNumFieldNumber = 2;
   ::google::protobuf::int32 starnum() const;
   void set_starnum(::google::protobuf::int32 value);
 
-  // int32 BattleCnt = 4;
+  // int32 BattleCnt = 3;
   void clear_battlecnt();
-  static const int kBattleCntFieldNumber = 4;
+  static const int kBattleCntFieldNumber = 3;
   ::google::protobuf::int32 battlecnt() const;
   void set_battlecnt(::google::protobuf::int32 value);
 
-  // int32 ResetCnt = 5;
+  // int32 ResetCnt = 4;
   void clear_resetcnt();
-  static const int kResetCntFieldNumber = 5;
+  static const int kResetCntFieldNumber = 4;
   ::google::protobuf::int32 resetcnt() const;
   void set_resetcnt(::google::protobuf::int32 value);
 
@@ -2302,7 +2302,6 @@ class CopyItem : public ::google::protobuf::Message /* @@protoc_insertion_point(
  private:
 
   ::google::protobuf::internal::InternalMetadataWithArena _internal_metadata_;
-  ::google::protobuf::uint64 roleid_;
   ::google::protobuf::uint32 copyid_;
   ::google::protobuf::int32 starnum_;
   ::google::protobuf::int32 battlecnt_;
@@ -2395,48 +2394,266 @@ class ChapterItem : public ::google::protobuf::Message /* @@protoc_insertion_poi
 
   // accessors -------------------------------------------------------
 
-  // uint64 RoleID = 1;
-  void clear_roleid();
-  static const int kRoleIDFieldNumber = 1;
-  ::google::protobuf::uint64 roleid() const;
-  void set_roleid(::google::protobuf::uint64 value);
-
-  // uint32 CopyType = 2;
-  void clear_copytype();
-  static const int kCopyTypeFieldNumber = 2;
-  ::google::protobuf::uint32 copytype() const;
-  void set_copytype(::google::protobuf::uint32 value);
-
-  // uint32 ChapterID = 3;
+  // uint32 ChapterID = 1;
   void clear_chapterid();
-  static const int kChapterIDFieldNumber = 3;
+  static const int kChapterIDFieldNumber = 1;
   ::google::protobuf::uint32 chapterid() const;
   void set_chapterid(::google::protobuf::uint32 value);
 
-  // uint32 StarAward = 4;
+  // uint32 StarAward = 2;
   void clear_staraward();
-  static const int kStarAwardFieldNumber = 4;
+  static const int kStarAwardFieldNumber = 2;
   ::google::protobuf::uint32 staraward() const;
   void set_staraward(::google::protobuf::uint32 value);
 
-  // uint32 SceneAward = 5;
+  // uint32 SceneAward = 3;
   void clear_sceneaward();
-  static const int kSceneAwardFieldNumber = 5;
+  static const int kSceneAwardFieldNumber = 3;
   ::google::protobuf::uint32 sceneaward() const;
   void set_sceneaward(::google::protobuf::uint32 value);
+
+  // uint32 CopyType = 4;
+  void clear_copytype();
+  static const int kCopyTypeFieldNumber = 4;
+  ::google::protobuf::uint32 copytype() const;
+  void set_copytype(::google::protobuf::uint32 value);
 
   // @@protoc_insertion_point(class_scope:ChapterItem)
  private:
 
   ::google::protobuf::internal::InternalMetadataWithArena _internal_metadata_;
-  ::google::protobuf::uint64 roleid_;
-  ::google::protobuf::uint32 copytype_;
   ::google::protobuf::uint32 chapterid_;
   ::google::protobuf::uint32 staraward_;
   ::google::protobuf::uint32 sceneaward_;
+  ::google::protobuf::uint32 copytype_;
   mutable int _cached_size_;
   friend struct ::protobuf_Msg_5fLoginCltData_2eproto::TableStruct;
   friend void ::protobuf_Msg_5fLoginCltData_2eproto::InitDefaultsChapterItemImpl();
+};
+// -------------------------------------------------------------------
+
+class ActionItem : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:ActionItem) */ {
+ public:
+  ActionItem();
+  virtual ~ActionItem();
+
+  ActionItem(const ActionItem& from);
+
+  inline ActionItem& operator=(const ActionItem& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  #if LANG_CXX11
+  ActionItem(ActionItem&& from) noexcept
+    : ActionItem() {
+    *this = ::std::move(from);
+  }
+
+  inline ActionItem& operator=(ActionItem&& from) noexcept {
+    if (GetArenaNoVirtual() == from.GetArenaNoVirtual()) {
+      if (this != &from) InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+  #endif
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const ActionItem& default_instance();
+
+  static void InitAsDefaultInstance();  // FOR INTERNAL USE ONLY
+  static inline const ActionItem* internal_default_instance() {
+    return reinterpret_cast<const ActionItem*>(
+               &_ActionItem_default_instance_);
+  }
+  static PROTOBUF_CONSTEXPR int const kIndexInFileMessages =
+    18;
+
+  void Swap(ActionItem* other);
+  friend void swap(ActionItem& a, ActionItem& b) {
+    a.Swap(&b);
+  }
+
+  // implements Message ----------------------------------------------
+
+  inline ActionItem* New() const PROTOBUF_FINAL { return New(NULL); }
+
+  ActionItem* New(::google::protobuf::Arena* arena) const PROTOBUF_FINAL;
+  void CopyFrom(const ::google::protobuf::Message& from) PROTOBUF_FINAL;
+  void MergeFrom(const ::google::protobuf::Message& from) PROTOBUF_FINAL;
+  void CopyFrom(const ActionItem& from);
+  void MergeFrom(const ActionItem& from);
+  void Clear() PROTOBUF_FINAL;
+  bool IsInitialized() const PROTOBUF_FINAL;
+
+  size_t ByteSizeLong() const PROTOBUF_FINAL;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input) PROTOBUF_FINAL;
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const PROTOBUF_FINAL;
+  ::google::protobuf::uint8* InternalSerializeWithCachedSizesToArray(
+      bool deterministic, ::google::protobuf::uint8* target) const PROTOBUF_FINAL;
+  int GetCachedSize() const PROTOBUF_FINAL { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const PROTOBUF_FINAL;
+  void InternalSwap(ActionItem* other);
+  private:
+  inline ::google::protobuf::Arena* GetArenaNoVirtual() const {
+    return NULL;
+  }
+  inline void* MaybeArenaPtr() const {
+    return NULL;
+  }
+  public:
+
+  ::google::protobuf::Metadata GetMetadata() const PROTOBUF_FINAL;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // int64 Action = 1;
+  void clear_action();
+  static const int kActionFieldNumber = 1;
+  ::google::protobuf::int64 action() const;
+  void set_action(::google::protobuf::int64 value);
+
+  // int64 Actime = 2;
+  void clear_actime();
+  static const int kActimeFieldNumber = 2;
+  ::google::protobuf::int64 actime() const;
+  void set_actime(::google::protobuf::int64 value);
+
+  // @@protoc_insertion_point(class_scope:ActionItem)
+ private:
+
+  ::google::protobuf::internal::InternalMetadataWithArena _internal_metadata_;
+  ::google::protobuf::int64 action_;
+  ::google::protobuf::int64 actime_;
+  mutable int _cached_size_;
+  friend struct ::protobuf_Msg_5fLoginCltData_2eproto::TableStruct;
+  friend void ::protobuf_Msg_5fLoginCltData_2eproto::InitDefaultsActionItemImpl();
+};
+// -------------------------------------------------------------------
+
+class SkillChangeNty : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:SkillChangeNty) */ {
+ public:
+  SkillChangeNty();
+  virtual ~SkillChangeNty();
+
+  SkillChangeNty(const SkillChangeNty& from);
+
+  inline SkillChangeNty& operator=(const SkillChangeNty& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  #if LANG_CXX11
+  SkillChangeNty(SkillChangeNty&& from) noexcept
+    : SkillChangeNty() {
+    *this = ::std::move(from);
+  }
+
+  inline SkillChangeNty& operator=(SkillChangeNty&& from) noexcept {
+    if (GetArenaNoVirtual() == from.GetArenaNoVirtual()) {
+      if (this != &from) InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+  #endif
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const SkillChangeNty& default_instance();
+
+  static void InitAsDefaultInstance();  // FOR INTERNAL USE ONLY
+  static inline const SkillChangeNty* internal_default_instance() {
+    return reinterpret_cast<const SkillChangeNty*>(
+               &_SkillChangeNty_default_instance_);
+  }
+  static PROTOBUF_CONSTEXPR int const kIndexInFileMessages =
+    19;
+
+  void Swap(SkillChangeNty* other);
+  friend void swap(SkillChangeNty& a, SkillChangeNty& b) {
+    a.Swap(&b);
+  }
+
+  // implements Message ----------------------------------------------
+
+  inline SkillChangeNty* New() const PROTOBUF_FINAL { return New(NULL); }
+
+  SkillChangeNty* New(::google::protobuf::Arena* arena) const PROTOBUF_FINAL;
+  void CopyFrom(const ::google::protobuf::Message& from) PROTOBUF_FINAL;
+  void MergeFrom(const ::google::protobuf::Message& from) PROTOBUF_FINAL;
+  void CopyFrom(const SkillChangeNty& from);
+  void MergeFrom(const SkillChangeNty& from);
+  void Clear() PROTOBUF_FINAL;
+  bool IsInitialized() const PROTOBUF_FINAL;
+
+  size_t ByteSizeLong() const PROTOBUF_FINAL;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input) PROTOBUF_FINAL;
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const PROTOBUF_FINAL;
+  ::google::protobuf::uint8* InternalSerializeWithCachedSizesToArray(
+      bool deterministic, ::google::protobuf::uint8* target) const PROTOBUF_FINAL;
+  int GetCachedSize() const PROTOBUF_FINAL { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const PROTOBUF_FINAL;
+  void InternalSwap(SkillChangeNty* other);
+  private:
+  inline ::google::protobuf::Arena* GetArenaNoVirtual() const {
+    return NULL;
+  }
+  inline void* MaybeArenaPtr() const {
+    return NULL;
+  }
+  public:
+
+  ::google::protobuf::Metadata GetMetadata() const PROTOBUF_FINAL;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // repeated .SkillItem ChangeList = 1;
+  int changelist_size() const;
+  void clear_changelist();
+  static const int kChangeListFieldNumber = 1;
+  const ::SkillItem& changelist(int index) const;
+  ::SkillItem* mutable_changelist(int index);
+  ::SkillItem* add_changelist();
+  ::google::protobuf::RepeatedPtrField< ::SkillItem >*
+      mutable_changelist();
+  const ::google::protobuf::RepeatedPtrField< ::SkillItem >&
+      changelist() const;
+
+  // repeated uint64 RemoveList = 2;
+  int removelist_size() const;
+  void clear_removelist();
+  static const int kRemoveListFieldNumber = 2;
+  ::google::protobuf::uint64 removelist(int index) const;
+  void set_removelist(int index, ::google::protobuf::uint64 value);
+  void add_removelist(::google::protobuf::uint64 value);
+  const ::google::protobuf::RepeatedField< ::google::protobuf::uint64 >&
+      removelist() const;
+  ::google::protobuf::RepeatedField< ::google::protobuf::uint64 >*
+      mutable_removelist();
+
+  // @@protoc_insertion_point(class_scope:SkillChangeNty)
+ private:
+
+  ::google::protobuf::internal::InternalMetadataWithArena _internal_metadata_;
+  ::google::protobuf::RepeatedPtrField< ::SkillItem > changelist_;
+  ::google::protobuf::RepeatedField< ::google::protobuf::uint64 > removelist_;
+  mutable int _removelist_cached_byte_size_;
+  mutable int _cached_size_;
+  friend struct ::protobuf_Msg_5fLoginCltData_2eproto::TableStruct;
+  friend void ::protobuf_Msg_5fLoginCltData_2eproto::InitDefaultsSkillChangeNtyImpl();
 };
 // -------------------------------------------------------------------
 
@@ -2475,7 +2692,7 @@ class RoleLoginAck : public ::google::protobuf::Message /* @@protoc_insertion_po
                &_RoleLoginAck_default_instance_);
   }
   static PROTOBUF_CONSTEXPR int const kIndexInFileMessages =
-    18;
+    20;
 
   void Swap(RoleLoginAck* other);
   friend void swap(RoleLoginAck& a, RoleLoginAck& b) {
@@ -2522,34 +2739,22 @@ class RoleLoginAck : public ::google::protobuf::Message /* @@protoc_insertion_po
 
   // accessors -------------------------------------------------------
 
-  // repeated int64 Action = 11;
-  int action_size() const;
-  void clear_action();
-  static const int kActionFieldNumber = 11;
-  ::google::protobuf::int64 action(int index) const;
-  void set_action(int index, ::google::protobuf::int64 value);
-  void add_action(::google::protobuf::int64 value);
-  const ::google::protobuf::RepeatedField< ::google::protobuf::int64 >&
-      action() const;
-  ::google::protobuf::RepeatedField< ::google::protobuf::int64 >*
-      mutable_action();
+  // repeated .ActionItem ActionList = 11;
+  int actionlist_size() const;
+  void clear_actionlist();
+  static const int kActionListFieldNumber = 11;
+  const ::ActionItem& actionlist(int index) const;
+  ::ActionItem* mutable_actionlist(int index);
+  ::ActionItem* add_actionlist();
+  ::google::protobuf::RepeatedPtrField< ::ActionItem >*
+      mutable_actionlist();
+  const ::google::protobuf::RepeatedPtrField< ::ActionItem >&
+      actionlist() const;
 
-  // repeated int64 Actime = 12;
-  int actime_size() const;
-  void clear_actime();
-  static const int kActimeFieldNumber = 12;
-  ::google::protobuf::int64 actime(int index) const;
-  void set_actime(int index, ::google::protobuf::int64 value);
-  void add_actime(::google::protobuf::int64 value);
-  const ::google::protobuf::RepeatedField< ::google::protobuf::int64 >&
-      actime() const;
-  ::google::protobuf::RepeatedField< ::google::protobuf::int64 >*
-      mutable_actime();
-
-  // repeated .EquipItem EquipList = 13;
+  // repeated .EquipItem EquipList = 12;
   int equiplist_size() const;
   void clear_equiplist();
-  static const int kEquipListFieldNumber = 13;
+  static const int kEquipListFieldNumber = 12;
   const ::EquipItem& equiplist(int index) const;
   ::EquipItem* mutable_equiplist(int index);
   ::EquipItem* add_equiplist();
@@ -2558,10 +2763,10 @@ class RoleLoginAck : public ::google::protobuf::Message /* @@protoc_insertion_po
   const ::google::protobuf::RepeatedPtrField< ::EquipItem >&
       equiplist() const;
 
-  // repeated .GemItem GemList = 14;
+  // repeated .GemItem GemList = 13;
   int gemlist_size() const;
   void clear_gemlist();
-  static const int kGemListFieldNumber = 14;
+  static const int kGemListFieldNumber = 13;
   const ::GemItem& gemlist(int index) const;
   ::GemItem* mutable_gemlist(int index);
   ::GemItem* add_gemlist();
@@ -2570,10 +2775,10 @@ class RoleLoginAck : public ::google::protobuf::Message /* @@protoc_insertion_po
   const ::google::protobuf::RepeatedPtrField< ::GemItem >&
       gemlist() const;
 
-  // repeated .PetItem PetList = 15;
+  // repeated .PetItem PetList = 14;
   int petlist_size() const;
   void clear_petlist();
-  static const int kPetListFieldNumber = 15;
+  static const int kPetListFieldNumber = 14;
   const ::PetItem& petlist(int index) const;
   ::PetItem* mutable_petlist(int index);
   ::PetItem* add_petlist();
@@ -2582,10 +2787,10 @@ class RoleLoginAck : public ::google::protobuf::Message /* @@protoc_insertion_po
   const ::google::protobuf::RepeatedPtrField< ::PetItem >&
       petlist() const;
 
-  // repeated .PartnerItem PartnerList = 16;
+  // repeated .PartnerItem PartnerList = 15;
   int partnerlist_size() const;
   void clear_partnerlist();
-  static const int kPartnerListFieldNumber = 16;
+  static const int kPartnerListFieldNumber = 15;
   const ::PartnerItem& partnerlist(int index) const;
   ::PartnerItem* mutable_partnerlist(int index);
   ::PartnerItem* add_partnerlist();
@@ -2594,10 +2799,10 @@ class RoleLoginAck : public ::google::protobuf::Message /* @@protoc_insertion_po
   const ::google::protobuf::RepeatedPtrField< ::PartnerItem >&
       partnerlist() const;
 
-  // repeated .MountItem MountList = 17;
+  // repeated .MountItem MountList = 16;
   int mountlist_size() const;
   void clear_mountlist();
-  static const int kMountListFieldNumber = 17;
+  static const int kMountListFieldNumber = 16;
   const ::MountItem& mountlist(int index) const;
   ::MountItem* mutable_mountlist(int index);
   ::MountItem* add_mountlist();
@@ -2606,10 +2811,10 @@ class RoleLoginAck : public ::google::protobuf::Message /* @@protoc_insertion_po
   const ::google::protobuf::RepeatedPtrField< ::MountItem >&
       mountlist() const;
 
-  // repeated .BagItem BagItemList = 18;
+  // repeated .BagItem BagItemList = 17;
   int bagitemlist_size() const;
   void clear_bagitemlist();
-  static const int kBagItemListFieldNumber = 18;
+  static const int kBagItemListFieldNumber = 17;
   const ::BagItem& bagitemlist(int index) const;
   ::BagItem* mutable_bagitemlist(int index);
   ::BagItem* add_bagitemlist();
@@ -2618,10 +2823,10 @@ class RoleLoginAck : public ::google::protobuf::Message /* @@protoc_insertion_po
   const ::google::protobuf::RepeatedPtrField< ::BagItem >&
       bagitemlist() const;
 
-  // repeated .MailItem MailList = 19;
+  // repeated .MailItem MailList = 18;
   int maillist_size() const;
   void clear_maillist();
-  static const int kMailListFieldNumber = 19;
+  static const int kMailListFieldNumber = 18;
   const ::MailItem& maillist(int index) const;
   ::MailItem* mutable_maillist(int index);
   ::MailItem* add_maillist();
@@ -2630,10 +2835,10 @@ class RoleLoginAck : public ::google::protobuf::Message /* @@protoc_insertion_po
   const ::google::protobuf::RepeatedPtrField< ::MailItem >&
       maillist() const;
 
-  // repeated .TaskItem TaskList = 20;
+  // repeated .TaskItem TaskList = 19;
   int tasklist_size() const;
   void clear_tasklist();
-  static const int kTaskListFieldNumber = 20;
+  static const int kTaskListFieldNumber = 19;
   const ::TaskItem& tasklist(int index) const;
   ::TaskItem* mutable_tasklist(int index);
   ::TaskItem* add_tasklist();
@@ -2641,6 +2846,42 @@ class RoleLoginAck : public ::google::protobuf::Message /* @@protoc_insertion_po
       mutable_tasklist();
   const ::google::protobuf::RepeatedPtrField< ::TaskItem >&
       tasklist() const;
+
+  // repeated .CopyItem CopyList = 20;
+  int copylist_size() const;
+  void clear_copylist();
+  static const int kCopyListFieldNumber = 20;
+  const ::CopyItem& copylist(int index) const;
+  ::CopyItem* mutable_copylist(int index);
+  ::CopyItem* add_copylist();
+  ::google::protobuf::RepeatedPtrField< ::CopyItem >*
+      mutable_copylist();
+  const ::google::protobuf::RepeatedPtrField< ::CopyItem >&
+      copylist() const;
+
+  // repeated .ChapterItem ChapterList = 21;
+  int chapterlist_size() const;
+  void clear_chapterlist();
+  static const int kChapterListFieldNumber = 21;
+  const ::ChapterItem& chapterlist(int index) const;
+  ::ChapterItem* mutable_chapterlist(int index);
+  ::ChapterItem* add_chapterlist();
+  ::google::protobuf::RepeatedPtrField< ::ChapterItem >*
+      mutable_chapterlist();
+  const ::google::protobuf::RepeatedPtrField< ::ChapterItem >&
+      chapterlist() const;
+
+  // repeated .SkillItem SkillList = 22;
+  int skilllist_size() const;
+  void clear_skilllist();
+  static const int kSkillListFieldNumber = 22;
+  const ::SkillItem& skilllist(int index) const;
+  ::SkillItem* mutable_skilllist(int index);
+  ::SkillItem* add_skilllist();
+  ::google::protobuf::RepeatedPtrField< ::SkillItem >*
+      mutable_skilllist();
+  const ::google::protobuf::RepeatedPtrField< ::SkillItem >&
+      skilllist() const;
 
   // string Name = 7;
   void clear_name();
@@ -2714,10 +2955,7 @@ class RoleLoginAck : public ::google::protobuf::Message /* @@protoc_insertion_po
  private:
 
   ::google::protobuf::internal::InternalMetadataWithArena _internal_metadata_;
-  ::google::protobuf::RepeatedField< ::google::protobuf::int64 > action_;
-  mutable int _action_cached_byte_size_;
-  ::google::protobuf::RepeatedField< ::google::protobuf::int64 > actime_;
-  mutable int _actime_cached_byte_size_;
+  ::google::protobuf::RepeatedPtrField< ::ActionItem > actionlist_;
   ::google::protobuf::RepeatedPtrField< ::EquipItem > equiplist_;
   ::google::protobuf::RepeatedPtrField< ::GemItem > gemlist_;
   ::google::protobuf::RepeatedPtrField< ::PetItem > petlist_;
@@ -2726,6 +2964,9 @@ class RoleLoginAck : public ::google::protobuf::Message /* @@protoc_insertion_po
   ::google::protobuf::RepeatedPtrField< ::BagItem > bagitemlist_;
   ::google::protobuf::RepeatedPtrField< ::MailItem > maillist_;
   ::google::protobuf::RepeatedPtrField< ::TaskItem > tasklist_;
+  ::google::protobuf::RepeatedPtrField< ::CopyItem > copylist_;
+  ::google::protobuf::RepeatedPtrField< ::ChapterItem > chapterlist_;
+  ::google::protobuf::RepeatedPtrField< ::SkillItem > skilllist_;
   ::google::protobuf::internal::ArenaStringPtr name_;
   ::google::protobuf::uint64 accountid_;
   ::google::protobuf::uint32 retcode_;
@@ -3527,18 +3768,18 @@ inline void PartnerItem::set_starexp(::google::protobuf::int32 value) {
   // @@protoc_insertion_point(field_set:PartnerItem.StarExp)
 }
 
-// int32 IsUsing = 8;
-inline void PartnerItem::clear_isusing() {
-  isusing_ = 0;
+// int32 SetPos = 8;
+inline void PartnerItem::clear_setpos() {
+  setpos_ = 0;
 }
-inline ::google::protobuf::int32 PartnerItem::isusing() const {
-  // @@protoc_insertion_point(field_get:PartnerItem.IsUsing)
-  return isusing_;
+inline ::google::protobuf::int32 PartnerItem::setpos() const {
+  // @@protoc_insertion_point(field_get:PartnerItem.SetPos)
+  return setpos_;
 }
-inline void PartnerItem::set_isusing(::google::protobuf::int32 value) {
+inline void PartnerItem::set_setpos(::google::protobuf::int32 value) {
   
-  isusing_ = value;
-  // @@protoc_insertion_point(field_set:PartnerItem.IsUsing)
+  setpos_ = value;
+  // @@protoc_insertion_point(field_set:PartnerItem.SetPos)
 }
 
 // -------------------------------------------------------------------
@@ -3623,18 +3864,18 @@ inline void MountItem::set_guid(::google::protobuf::uint64 value) {
   // @@protoc_insertion_point(field_set:MountItem.Guid)
 }
 
-// int32 ItemID = 2;
-inline void MountItem::clear_itemid() {
-  itemid_ = 0;
+// int32 MountID = 2;
+inline void MountItem::clear_mountid() {
+  mountid_ = 0;
 }
-inline ::google::protobuf::int32 MountItem::itemid() const {
-  // @@protoc_insertion_point(field_get:MountItem.ItemID)
-  return itemid_;
+inline ::google::protobuf::int32 MountItem::mountid() const {
+  // @@protoc_insertion_point(field_get:MountItem.MountID)
+  return mountid_;
 }
-inline void MountItem::set_itemid(::google::protobuf::int32 value) {
+inline void MountItem::set_mountid(::google::protobuf::int32 value) {
   
-  itemid_ = value;
-  // @@protoc_insertion_point(field_set:MountItem.ItemID)
+  mountid_ = value;
+  // @@protoc_insertion_point(field_set:MountItem.MountID)
 }
 
 // int32 StrengthLvl = 3;
@@ -3871,21 +4112,7 @@ MailChangeNty::mutable_removelist() {
 
 // TaskItem
 
-// uint64 RoleID = 1;
-inline void TaskItem::clear_roleid() {
-  roleid_ = GOOGLE_ULONGLONG(0);
-}
-inline ::google::protobuf::uint64 TaskItem::roleid() const {
-  // @@protoc_insertion_point(field_get:TaskItem.RoleID)
-  return roleid_;
-}
-inline void TaskItem::set_roleid(::google::protobuf::uint64 value) {
-  
-  roleid_ = value;
-  // @@protoc_insertion_point(field_set:TaskItem.RoleID)
-}
-
-// uint32 TaskID = 2;
+// uint32 TaskID = 1;
 inline void TaskItem::clear_taskid() {
   taskid_ = 0u;
 }
@@ -3967,21 +4194,7 @@ TaskChangeNty::mutable_removelist() {
 
 // CopyItem
 
-// uint64 RoleID = 1;
-inline void CopyItem::clear_roleid() {
-  roleid_ = GOOGLE_ULONGLONG(0);
-}
-inline ::google::protobuf::uint64 CopyItem::roleid() const {
-  // @@protoc_insertion_point(field_get:CopyItem.RoleID)
-  return roleid_;
-}
-inline void CopyItem::set_roleid(::google::protobuf::uint64 value) {
-  
-  roleid_ = value;
-  // @@protoc_insertion_point(field_set:CopyItem.RoleID)
-}
-
-// uint32 CopyID = 2;
+// uint32 CopyID = 1;
 inline void CopyItem::clear_copyid() {
   copyid_ = 0u;
 }
@@ -3995,7 +4208,7 @@ inline void CopyItem::set_copyid(::google::protobuf::uint32 value) {
   // @@protoc_insertion_point(field_set:CopyItem.CopyID)
 }
 
-// int32 StarNum = 3;
+// int32 StarNum = 2;
 inline void CopyItem::clear_starnum() {
   starnum_ = 0;
 }
@@ -4009,7 +4222,7 @@ inline void CopyItem::set_starnum(::google::protobuf::int32 value) {
   // @@protoc_insertion_point(field_set:CopyItem.StarNum)
 }
 
-// int32 BattleCnt = 4;
+// int32 BattleCnt = 3;
 inline void CopyItem::clear_battlecnt() {
   battlecnt_ = 0;
 }
@@ -4023,7 +4236,7 @@ inline void CopyItem::set_battlecnt(::google::protobuf::int32 value) {
   // @@protoc_insertion_point(field_set:CopyItem.BattleCnt)
 }
 
-// int32 ResetCnt = 5;
+// int32 ResetCnt = 4;
 inline void CopyItem::clear_resetcnt() {
   resetcnt_ = 0;
 }
@@ -4041,35 +4254,7 @@ inline void CopyItem::set_resetcnt(::google::protobuf::int32 value) {
 
 // ChapterItem
 
-// uint64 RoleID = 1;
-inline void ChapterItem::clear_roleid() {
-  roleid_ = GOOGLE_ULONGLONG(0);
-}
-inline ::google::protobuf::uint64 ChapterItem::roleid() const {
-  // @@protoc_insertion_point(field_get:ChapterItem.RoleID)
-  return roleid_;
-}
-inline void ChapterItem::set_roleid(::google::protobuf::uint64 value) {
-  
-  roleid_ = value;
-  // @@protoc_insertion_point(field_set:ChapterItem.RoleID)
-}
-
-// uint32 CopyType = 2;
-inline void ChapterItem::clear_copytype() {
-  copytype_ = 0u;
-}
-inline ::google::protobuf::uint32 ChapterItem::copytype() const {
-  // @@protoc_insertion_point(field_get:ChapterItem.CopyType)
-  return copytype_;
-}
-inline void ChapterItem::set_copytype(::google::protobuf::uint32 value) {
-  
-  copytype_ = value;
-  // @@protoc_insertion_point(field_set:ChapterItem.CopyType)
-}
-
-// uint32 ChapterID = 3;
+// uint32 ChapterID = 1;
 inline void ChapterItem::clear_chapterid() {
   chapterid_ = 0u;
 }
@@ -4083,7 +4268,7 @@ inline void ChapterItem::set_chapterid(::google::protobuf::uint32 value) {
   // @@protoc_insertion_point(field_set:ChapterItem.ChapterID)
 }
 
-// uint32 StarAward = 4;
+// uint32 StarAward = 2;
 inline void ChapterItem::clear_staraward() {
   staraward_ = 0u;
 }
@@ -4097,7 +4282,7 @@ inline void ChapterItem::set_staraward(::google::protobuf::uint32 value) {
   // @@protoc_insertion_point(field_set:ChapterItem.StarAward)
 }
 
-// uint32 SceneAward = 5;
+// uint32 SceneAward = 3;
 inline void ChapterItem::clear_sceneaward() {
   sceneaward_ = 0u;
 }
@@ -4109,6 +4294,116 @@ inline void ChapterItem::set_sceneaward(::google::protobuf::uint32 value) {
   
   sceneaward_ = value;
   // @@protoc_insertion_point(field_set:ChapterItem.SceneAward)
+}
+
+// uint32 CopyType = 4;
+inline void ChapterItem::clear_copytype() {
+  copytype_ = 0u;
+}
+inline ::google::protobuf::uint32 ChapterItem::copytype() const {
+  // @@protoc_insertion_point(field_get:ChapterItem.CopyType)
+  return copytype_;
+}
+inline void ChapterItem::set_copytype(::google::protobuf::uint32 value) {
+  
+  copytype_ = value;
+  // @@protoc_insertion_point(field_set:ChapterItem.CopyType)
+}
+
+// -------------------------------------------------------------------
+
+// ActionItem
+
+// int64 Action = 1;
+inline void ActionItem::clear_action() {
+  action_ = GOOGLE_LONGLONG(0);
+}
+inline ::google::protobuf::int64 ActionItem::action() const {
+  // @@protoc_insertion_point(field_get:ActionItem.Action)
+  return action_;
+}
+inline void ActionItem::set_action(::google::protobuf::int64 value) {
+  
+  action_ = value;
+  // @@protoc_insertion_point(field_set:ActionItem.Action)
+}
+
+// int64 Actime = 2;
+inline void ActionItem::clear_actime() {
+  actime_ = GOOGLE_LONGLONG(0);
+}
+inline ::google::protobuf::int64 ActionItem::actime() const {
+  // @@protoc_insertion_point(field_get:ActionItem.Actime)
+  return actime_;
+}
+inline void ActionItem::set_actime(::google::protobuf::int64 value) {
+  
+  actime_ = value;
+  // @@protoc_insertion_point(field_set:ActionItem.Actime)
+}
+
+// -------------------------------------------------------------------
+
+// SkillChangeNty
+
+// repeated .SkillItem ChangeList = 1;
+inline int SkillChangeNty::changelist_size() const {
+  return changelist_.size();
+}
+inline void SkillChangeNty::clear_changelist() {
+  changelist_.Clear();
+}
+inline const ::SkillItem& SkillChangeNty::changelist(int index) const {
+  // @@protoc_insertion_point(field_get:SkillChangeNty.ChangeList)
+  return changelist_.Get(index);
+}
+inline ::SkillItem* SkillChangeNty::mutable_changelist(int index) {
+  // @@protoc_insertion_point(field_mutable:SkillChangeNty.ChangeList)
+  return changelist_.Mutable(index);
+}
+inline ::SkillItem* SkillChangeNty::add_changelist() {
+  // @@protoc_insertion_point(field_add:SkillChangeNty.ChangeList)
+  return changelist_.Add();
+}
+inline ::google::protobuf::RepeatedPtrField< ::SkillItem >*
+SkillChangeNty::mutable_changelist() {
+  // @@protoc_insertion_point(field_mutable_list:SkillChangeNty.ChangeList)
+  return &changelist_;
+}
+inline const ::google::protobuf::RepeatedPtrField< ::SkillItem >&
+SkillChangeNty::changelist() const {
+  // @@protoc_insertion_point(field_list:SkillChangeNty.ChangeList)
+  return changelist_;
+}
+
+// repeated uint64 RemoveList = 2;
+inline int SkillChangeNty::removelist_size() const {
+  return removelist_.size();
+}
+inline void SkillChangeNty::clear_removelist() {
+  removelist_.Clear();
+}
+inline ::google::protobuf::uint64 SkillChangeNty::removelist(int index) const {
+  // @@protoc_insertion_point(field_get:SkillChangeNty.RemoveList)
+  return removelist_.Get(index);
+}
+inline void SkillChangeNty::set_removelist(int index, ::google::protobuf::uint64 value) {
+  removelist_.Set(index, value);
+  // @@protoc_insertion_point(field_set:SkillChangeNty.RemoveList)
+}
+inline void SkillChangeNty::add_removelist(::google::protobuf::uint64 value) {
+  removelist_.Add(value);
+  // @@protoc_insertion_point(field_add:SkillChangeNty.RemoveList)
+}
+inline const ::google::protobuf::RepeatedField< ::google::protobuf::uint64 >&
+SkillChangeNty::removelist() const {
+  // @@protoc_insertion_point(field_list:SkillChangeNty.RemoveList)
+  return removelist_;
+}
+inline ::google::protobuf::RepeatedField< ::google::protobuf::uint64 >*
+SkillChangeNty::mutable_removelist() {
+  // @@protoc_insertion_point(field_mutable_list:SkillChangeNty.RemoveList)
+  return &removelist_;
 }
 
 // -------------------------------------------------------------------
@@ -4294,67 +4589,37 @@ inline void RoleLoginAck::set_fightvalue(::google::protobuf::int64 value) {
   // @@protoc_insertion_point(field_set:RoleLoginAck.FightValue)
 }
 
-// repeated int64 Action = 11;
-inline int RoleLoginAck::action_size() const {
-  return action_.size();
+// repeated .ActionItem ActionList = 11;
+inline int RoleLoginAck::actionlist_size() const {
+  return actionlist_.size();
 }
-inline void RoleLoginAck::clear_action() {
-  action_.Clear();
+inline void RoleLoginAck::clear_actionlist() {
+  actionlist_.Clear();
 }
-inline ::google::protobuf::int64 RoleLoginAck::action(int index) const {
-  // @@protoc_insertion_point(field_get:RoleLoginAck.Action)
-  return action_.Get(index);
+inline const ::ActionItem& RoleLoginAck::actionlist(int index) const {
+  // @@protoc_insertion_point(field_get:RoleLoginAck.ActionList)
+  return actionlist_.Get(index);
 }
-inline void RoleLoginAck::set_action(int index, ::google::protobuf::int64 value) {
-  action_.Set(index, value);
-  // @@protoc_insertion_point(field_set:RoleLoginAck.Action)
+inline ::ActionItem* RoleLoginAck::mutable_actionlist(int index) {
+  // @@protoc_insertion_point(field_mutable:RoleLoginAck.ActionList)
+  return actionlist_.Mutable(index);
 }
-inline void RoleLoginAck::add_action(::google::protobuf::int64 value) {
-  action_.Add(value);
-  // @@protoc_insertion_point(field_add:RoleLoginAck.Action)
+inline ::ActionItem* RoleLoginAck::add_actionlist() {
+  // @@protoc_insertion_point(field_add:RoleLoginAck.ActionList)
+  return actionlist_.Add();
 }
-inline const ::google::protobuf::RepeatedField< ::google::protobuf::int64 >&
-RoleLoginAck::action() const {
-  // @@protoc_insertion_point(field_list:RoleLoginAck.Action)
-  return action_;
+inline ::google::protobuf::RepeatedPtrField< ::ActionItem >*
+RoleLoginAck::mutable_actionlist() {
+  // @@protoc_insertion_point(field_mutable_list:RoleLoginAck.ActionList)
+  return &actionlist_;
 }
-inline ::google::protobuf::RepeatedField< ::google::protobuf::int64 >*
-RoleLoginAck::mutable_action() {
-  // @@protoc_insertion_point(field_mutable_list:RoleLoginAck.Action)
-  return &action_;
-}
-
-// repeated int64 Actime = 12;
-inline int RoleLoginAck::actime_size() const {
-  return actime_.size();
-}
-inline void RoleLoginAck::clear_actime() {
-  actime_.Clear();
-}
-inline ::google::protobuf::int64 RoleLoginAck::actime(int index) const {
-  // @@protoc_insertion_point(field_get:RoleLoginAck.Actime)
-  return actime_.Get(index);
-}
-inline void RoleLoginAck::set_actime(int index, ::google::protobuf::int64 value) {
-  actime_.Set(index, value);
-  // @@protoc_insertion_point(field_set:RoleLoginAck.Actime)
-}
-inline void RoleLoginAck::add_actime(::google::protobuf::int64 value) {
-  actime_.Add(value);
-  // @@protoc_insertion_point(field_add:RoleLoginAck.Actime)
-}
-inline const ::google::protobuf::RepeatedField< ::google::protobuf::int64 >&
-RoleLoginAck::actime() const {
-  // @@protoc_insertion_point(field_list:RoleLoginAck.Actime)
-  return actime_;
-}
-inline ::google::protobuf::RepeatedField< ::google::protobuf::int64 >*
-RoleLoginAck::mutable_actime() {
-  // @@protoc_insertion_point(field_mutable_list:RoleLoginAck.Actime)
-  return &actime_;
+inline const ::google::protobuf::RepeatedPtrField< ::ActionItem >&
+RoleLoginAck::actionlist() const {
+  // @@protoc_insertion_point(field_list:RoleLoginAck.ActionList)
+  return actionlist_;
 }
 
-// repeated .EquipItem EquipList = 13;
+// repeated .EquipItem EquipList = 12;
 inline int RoleLoginAck::equiplist_size() const {
   return equiplist_.size();
 }
@@ -4384,7 +4649,7 @@ RoleLoginAck::equiplist() const {
   return equiplist_;
 }
 
-// repeated .GemItem GemList = 14;
+// repeated .GemItem GemList = 13;
 inline int RoleLoginAck::gemlist_size() const {
   return gemlist_.size();
 }
@@ -4414,7 +4679,7 @@ RoleLoginAck::gemlist() const {
   return gemlist_;
 }
 
-// repeated .PetItem PetList = 15;
+// repeated .PetItem PetList = 14;
 inline int RoleLoginAck::petlist_size() const {
   return petlist_.size();
 }
@@ -4444,7 +4709,7 @@ RoleLoginAck::petlist() const {
   return petlist_;
 }
 
-// repeated .PartnerItem PartnerList = 16;
+// repeated .PartnerItem PartnerList = 15;
 inline int RoleLoginAck::partnerlist_size() const {
   return partnerlist_.size();
 }
@@ -4474,7 +4739,7 @@ RoleLoginAck::partnerlist() const {
   return partnerlist_;
 }
 
-// repeated .MountItem MountList = 17;
+// repeated .MountItem MountList = 16;
 inline int RoleLoginAck::mountlist_size() const {
   return mountlist_.size();
 }
@@ -4504,7 +4769,7 @@ RoleLoginAck::mountlist() const {
   return mountlist_;
 }
 
-// repeated .BagItem BagItemList = 18;
+// repeated .BagItem BagItemList = 17;
 inline int RoleLoginAck::bagitemlist_size() const {
   return bagitemlist_.size();
 }
@@ -4534,7 +4799,7 @@ RoleLoginAck::bagitemlist() const {
   return bagitemlist_;
 }
 
-// repeated .MailItem MailList = 19;
+// repeated .MailItem MailList = 18;
 inline int RoleLoginAck::maillist_size() const {
   return maillist_.size();
 }
@@ -4564,7 +4829,7 @@ RoleLoginAck::maillist() const {
   return maillist_;
 }
 
-// repeated .TaskItem TaskList = 20;
+// repeated .TaskItem TaskList = 19;
 inline int RoleLoginAck::tasklist_size() const {
   return tasklist_.size();
 }
@@ -4594,9 +4859,103 @@ RoleLoginAck::tasklist() const {
   return tasklist_;
 }
 
+// repeated .CopyItem CopyList = 20;
+inline int RoleLoginAck::copylist_size() const {
+  return copylist_.size();
+}
+inline void RoleLoginAck::clear_copylist() {
+  copylist_.Clear();
+}
+inline const ::CopyItem& RoleLoginAck::copylist(int index) const {
+  // @@protoc_insertion_point(field_get:RoleLoginAck.CopyList)
+  return copylist_.Get(index);
+}
+inline ::CopyItem* RoleLoginAck::mutable_copylist(int index) {
+  // @@protoc_insertion_point(field_mutable:RoleLoginAck.CopyList)
+  return copylist_.Mutable(index);
+}
+inline ::CopyItem* RoleLoginAck::add_copylist() {
+  // @@protoc_insertion_point(field_add:RoleLoginAck.CopyList)
+  return copylist_.Add();
+}
+inline ::google::protobuf::RepeatedPtrField< ::CopyItem >*
+RoleLoginAck::mutable_copylist() {
+  // @@protoc_insertion_point(field_mutable_list:RoleLoginAck.CopyList)
+  return &copylist_;
+}
+inline const ::google::protobuf::RepeatedPtrField< ::CopyItem >&
+RoleLoginAck::copylist() const {
+  // @@protoc_insertion_point(field_list:RoleLoginAck.CopyList)
+  return copylist_;
+}
+
+// repeated .ChapterItem ChapterList = 21;
+inline int RoleLoginAck::chapterlist_size() const {
+  return chapterlist_.size();
+}
+inline void RoleLoginAck::clear_chapterlist() {
+  chapterlist_.Clear();
+}
+inline const ::ChapterItem& RoleLoginAck::chapterlist(int index) const {
+  // @@protoc_insertion_point(field_get:RoleLoginAck.ChapterList)
+  return chapterlist_.Get(index);
+}
+inline ::ChapterItem* RoleLoginAck::mutable_chapterlist(int index) {
+  // @@protoc_insertion_point(field_mutable:RoleLoginAck.ChapterList)
+  return chapterlist_.Mutable(index);
+}
+inline ::ChapterItem* RoleLoginAck::add_chapterlist() {
+  // @@protoc_insertion_point(field_add:RoleLoginAck.ChapterList)
+  return chapterlist_.Add();
+}
+inline ::google::protobuf::RepeatedPtrField< ::ChapterItem >*
+RoleLoginAck::mutable_chapterlist() {
+  // @@protoc_insertion_point(field_mutable_list:RoleLoginAck.ChapterList)
+  return &chapterlist_;
+}
+inline const ::google::protobuf::RepeatedPtrField< ::ChapterItem >&
+RoleLoginAck::chapterlist() const {
+  // @@protoc_insertion_point(field_list:RoleLoginAck.ChapterList)
+  return chapterlist_;
+}
+
+// repeated .SkillItem SkillList = 22;
+inline int RoleLoginAck::skilllist_size() const {
+  return skilllist_.size();
+}
+inline void RoleLoginAck::clear_skilllist() {
+  skilllist_.Clear();
+}
+inline const ::SkillItem& RoleLoginAck::skilllist(int index) const {
+  // @@protoc_insertion_point(field_get:RoleLoginAck.SkillList)
+  return skilllist_.Get(index);
+}
+inline ::SkillItem* RoleLoginAck::mutable_skilllist(int index) {
+  // @@protoc_insertion_point(field_mutable:RoleLoginAck.SkillList)
+  return skilllist_.Mutable(index);
+}
+inline ::SkillItem* RoleLoginAck::add_skilllist() {
+  // @@protoc_insertion_point(field_add:RoleLoginAck.SkillList)
+  return skilllist_.Add();
+}
+inline ::google::protobuf::RepeatedPtrField< ::SkillItem >*
+RoleLoginAck::mutable_skilllist() {
+  // @@protoc_insertion_point(field_mutable_list:RoleLoginAck.SkillList)
+  return &skilllist_;
+}
+inline const ::google::protobuf::RepeatedPtrField< ::SkillItem >&
+RoleLoginAck::skilllist() const {
+  // @@protoc_insertion_point(field_list:RoleLoginAck.SkillList)
+  return skilllist_;
+}
+
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
 // -------------------------------------------------------------------
 
 // -------------------------------------------------------------------

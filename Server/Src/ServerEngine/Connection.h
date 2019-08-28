@@ -27,7 +27,7 @@ struct NetIoOperatorData
 
 	IDataBuffer*	pDataBuffer;
 
-	void			Clear();
+	void			Reset();
 };
 
 class CConnection
@@ -62,7 +62,7 @@ public:
 
 	BOOL	SetConnectionOK(BOOL bOk);
 
-	BOOL    Clear();
+	BOOL    Reset();
 
 	BOOL    SendBuffer(IDataBuffer*	pBuff);
 
@@ -100,10 +100,11 @@ public:
 
 	UINT64						m_LastRecvTick;
 
-	ArrayLockFreeQueue < IDataBuffer*, 1 << 12 > m_SendBuffList;
+	ArrayLockFreeQueue < IDataBuffer* > m_SendBuffList;
+
+
 
 	BOOL				        m_IsSending;
-	CCritSec                    mCritSending;
 
 	//LINUX下专用， 用于发了一半的包
 	IDataBuffer*				m_pSendingBuffer;

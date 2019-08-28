@@ -15,14 +15,15 @@ public:
 
 	virtual BOOL OnPlayerEnter(CSceneObject* pPlayer);
 
-	virtual BOOL OnPlayerLeave(CSceneObject* pPlayer);
+	virtual BOOL OnPlayerLeave(CSceneObject* pPlayer, BOOL bDisConnect);
 
 	virtual BOOL Update(UINT64 uTick);
 
 	virtual BOOL OnTimeUP();
 
+	BOOL BattleResultCheck();
 };
 
-#endif //_SCENELOGIC_BASE_H_
+#endif //_SCENELOGIC_NORMAL_H_
 
 

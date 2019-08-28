@@ -41,17 +41,18 @@ class MonsterWave
 public:
 	MonsterWave()
 	{
-
+		m_bDone = FALSE;
 	}
 
 	~MonsterWave()
 	{
-
+		m_bDone = FALSE;
 	}
 
 public:
 	std::vector<MonsterData>  m_vtMonsterList;
 	UINT32 m_dwGenType;
+	BOOL   m_bDone;
 };
 
 
@@ -71,9 +72,9 @@ public:
 
 	BOOL		OnObjectDie(CSceneObject* pObject);
 
-	CScene*		m_pScene;
+	BOOL        OnPlayerMove(FLOAT x, FLOAT z);
 
-	BOOL		m_bAllFinished;
+	CScene*		m_pScene;
 
 	INT32		m_dwCurWave;
 

@@ -5,7 +5,7 @@
 class  CProxyPlayer
 {
 public:
-	CProxyPlayer(): m_u64RoleID(0), m_dwGameSvrID(0) {}
+	CProxyPlayer();
 
 	~CProxyPlayer();
 
@@ -13,6 +13,8 @@ public:
 	UINT32	GetGameSvrID();
 
 	VOID	SetGameSvrInfo(UINT32 dwSvrID, UINT32 dwCopyGuid);
+
+	VOID	SetConnID(UINT32 dwConnID);
 
 	UINT64	GetCharID();
 

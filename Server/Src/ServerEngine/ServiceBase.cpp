@@ -1,4 +1,5 @@
 ﻿#include "stdafx.h"
+#include "SpinLock.h"
 #include "ServiceBase.h"
 #include "NetManager.h"
 #include "CommonSocket.h"
@@ -14,10 +15,14 @@
 ServiceBase::ServiceBase(void)
 {
 	m_pPacketDispatcher = NULL;
+	m_pRecvDataQueue = new std::deque<NetPacket>();
+	m_pDispathQueue = new std::deque<NetPacket>();
 }
 
 ServiceBase::~ServiceBase(void)
 {
+	delete m_pRecvDataQueue;
+	delete m_pDispathQueue;
 }
 
 ServiceBase* ServiceBase::GetInstancePtr()
@@ -32,13 +37,13 @@ BOOL ServiceBase::OnDataHandle(IDataBuffer* pDataBuffer, CConnection* pConnectio
 {
 	PacketHeader* pHeader = (PacketHeader*)pDataBuffer->GetBuffer();
 
-	m_SpinLock.Lock();
+	m_QueueLock.Lock();
 	m_pRecvDataQueue->emplace_back(NetPacket(pConnection->GetConnectionID(), pDataBuffer, pHeader->dwMsgID));
-	m_SpinLock.Unlock();
+	m_QueueLock.Unlock();
 	return TRUE;
 }
 
-BOOL ServiceBase::StartNetwork(UINT16 nPortNum, UINT32 nMaxConn, IPacketDispatcher* pDispather)
+BOOL ServiceBase::StartNetwork(UINT16 nPortNum, UINT32 nMaxConn, IPacketDispatcher* pDispather, std::string strListenIp)
 {
 	if (pDispather == NULL)
 	{
@@ -81,15 +86,22 @@ BOOL ServiceBase::StopNetwork()
 template<typename T>
 BOOL ServiceBase::SendMsgStruct(UINT32 dwConnID, UINT32 dwMsgID, UINT64 u64TargetID, UINT32 dwUserData, T& Data)
 {
-	ERROR_RETURN_FALSE(dwConnID != 0);
+	if (dwConnID <= 0)
+	{
+		return FALSE;
+	}
 
 	m_dwSendNum++;
+
 	return CNetManager::GetInstancePtr()->SendMessageByConnID(dwConnID, dwMsgID, u64TargetID, dwUserData, &Data, sizeof(T));
 }
 
 BOOL ServiceBase::SendMsgProtoBuf(UINT32 dwConnID, UINT32 dwMsgID, UINT64 u64TargetID, UINT32 dwUserData, const google::protobuf::Message& pdata)
 {
-	ERROR_RETURN_FALSE(dwConnID != 0);
+	if (dwConnID <= 0)
+	{
+		return FALSE;
+	}
 
 	char szBuff[102400] = {0};
 
@@ -102,18 +114,27 @@ BOOL ServiceBase::SendMsgProtoBuf(UINT32 dwConnID, UINT32 dwMsgID, UINT64 u64Tar
 
 BOOL ServiceBase::SendMsgRawData(UINT32 dwConnID, UINT32 dwMsgID, UINT64 u64TargetID, UINT32 dwUserData, const char* pdata, UINT32 dwLen)
 {
-	ERROR_RETURN_FALSE(dwConnID != 0);
+	if (dwConnID <= 0)
+	{
+		return FALSE;
+	}
+
 	m_dwSendNum++;
 	return CNetManager::GetInstancePtr()->SendMessageByConnID(dwConnID, dwMsgID, u64TargetID, dwUserData, pdata, dwLen);
 }
 
 BOOL ServiceBase::SendMsgBuffer(UINT32 dwConnID, IDataBuffer* pDataBuffer)
 {
+	if (dwConnID == 0)
+	{
+		return FALSE;
+	}
+
 	m_dwSendNum++;
 	return CNetManager::GetInstancePtr()->SendMsgBufByConnID(dwConnID, pDataBuffer);
 }
 
-CConnection* ServiceBase::ConnectToOtherSvr( std::string strIpAddr, UINT16 sPort )
+CConnection* ServiceBase::ConnectTo( std::string strIpAddr, UINT16 sPort )
 {
 	if(strIpAddr.empty() || sPort <= 0)
 	{
@@ -121,25 +142,25 @@ CConnection* ServiceBase::ConnectToOtherSvr( std::string strIpAddr, UINT16 sPort
 		return NULL;
 	}
 
-	return CNetManager::GetInstancePtr()->ConnectToOtherSvrEx(strIpAddr, sPort);
+	return CNetManager::GetInstancePtr()->ConnectTo_Async(strIpAddr, sPort);
 }
 
 BOOL ServiceBase::OnCloseConnect( CConnection* pConnection )
 {
 	ERROR_RETURN_FALSE(pConnection->GetConnectionID() != 0);
 
-	m_SpinLock.Lock();
+	m_QueueLock.Lock();
 	m_pRecvDataQueue->emplace_back(NetPacket(pConnection->GetConnectionID(), (IDataBuffer*)pConnection, CLOSE_CONNECTION));
-	m_SpinLock.Unlock();
+	m_QueueLock.Unlock();
 	return TRUE;
 }
 
 BOOL ServiceBase::OnNewConnect( CConnection* pConnection )
 {
 	ERROR_RETURN_FALSE(pConnection->GetConnectionID() != 0);
-	m_SpinLock.Lock();
+	m_QueueLock.Lock();
 	m_pRecvDataQueue->emplace_back(NetPacket(pConnection->GetConnectionID(), (IDataBuffer*)pConnection, NEW_CONNECTION));
-	m_SpinLock.Unlock();
+	m_QueueLock.Unlock();
 	return TRUE;
 }
 
@@ -158,34 +179,37 @@ BOOL ServiceBase::Update()
 
 	CConnectionMgr::GetInstancePtr()->CheckConntionAvalible();
 
-	m_SpinLock.Lock();
+	m_QueueLock.Lock();
 	std::swap(m_pRecvDataQueue, m_pDispathQueue);
-	m_SpinLock.Unlock();
+	m_QueueLock.Unlock();
 
-	for (std::deque<NetPacket>::iterator itor = m_pDispathQueue->begin(); itor != m_pDispathQueue->end(); itor++)
+	if (m_pDispathQueue->size() > 0)
 	{
-		NetPacket& item = *itor;
-		if (item.m_dwMsgID == NEW_CONNECTION)
+		for (std::deque<NetPacket>::iterator itor = m_pDispathQueue->begin(); itor != m_pDispathQueue->end(); itor++)
 		{
-			m_pPacketDispatcher->OnNewConnect((CConnection*)item.m_pDataBuffer);
-		}
-		else if (item.m_dwMsgID == CLOSE_CONNECTION)
-		{
-			m_pPacketDispatcher->OnCloseConnect((CConnection*)item.m_pDataBuffer);
-			//发送通知
-			CConnectionMgr::GetInstancePtr()->DeleteConnection((CConnection*)item.m_pDataBuffer);
-		}
-		else
-		{
-			m_pPacketDispatcher->DispatchPacket(&item);
+			NetPacket& item = *itor;
+			if (item.m_dwMsgID == NEW_CONNECTION)
+			{
+				m_pPacketDispatcher->OnNewConnect((CConnection*)item.m_pDataBuffer);
+			}
+			else if (item.m_dwMsgID == CLOSE_CONNECTION)
+			{
+				m_pPacketDispatcher->OnCloseConnect((CConnection*)item.m_pDataBuffer);
+				//发送通知
+				CConnectionMgr::GetInstancePtr()->DeleteConnection((CConnection*)item.m_pDataBuffer);
+			}
+			else
+			{
+				m_pPacketDispatcher->DispatchPacket(&item);
 
-			item.m_pDataBuffer->Release();
+				item.m_pDataBuffer->Release();
 
-			m_dwRecvNum += 1;
+				m_dwRecvNum += 1;
+			}
 		}
+
+		m_pDispathQueue->clear();
 	}
-
-	m_pDispathQueue->clear();
 
 	m_dwFps += 1;
 
@@ -193,7 +217,7 @@ BOOL ServiceBase::Update()
 	{
 		m_pPacketDispatcher->OnSecondTimer();
 
-		CLog::GetInstancePtr()->SetTitle("[FPS:%d]-[RecvNum:%d]--[SendNum:%d]", m_dwFps, m_dwRecvNum, m_dwSendNum);
+		CLog::GetInstancePtr()->SetTitle("[FPS:%d]-[RecvPack:%d]--[SendPack:%d]", m_dwFps, m_dwRecvNum, m_dwSendNum);
 		m_dwFps = 0;
 		m_dwRecvNum = 0;
 		m_dwSendNum = 0;

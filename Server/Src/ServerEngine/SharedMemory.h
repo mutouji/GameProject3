@@ -6,50 +6,56 @@
 
 /**共享内存的状态
 */
-enum SharedMemoryState
+enum SharedMemoryStatus
 {
-	SMS_NONE,  ///未使用，空闲状态
-	SMS_USE,    //已经使用了，数据库服务器可以读取修改写入数据库
-	SMS_LOCK,///锁住状态，逻辑服务器正在写入
-	SMS_RELEASE,///逻辑服务器已经释放了。数据库服务器写入修改后可以置为SMS_NONE状态
-	SMS_DELETE,///删除标志
+	SMS_NONE,		//未使用空闲状态
+	SMS_USE,		//已经使用了，数据库服务器可以读取修改写入数据库
+	SMS_LOCK,		//锁住状态，逻辑服务器正在写入
+	SMS_RELEASE,	//逻辑服务器已经释放了。数据库服务器写入修改后可以置为SMS_NONE状态
+	SMS_DELETE,		//删除标志
 };
 
 ///所有放到sharedMemory里的元素都必须是从ShareObject派生的
-struct ShareObject
+class ShareObject
 {
+public:
 	ShareObject();
 
 	///开始修改，标记为被占用
-	void lock();
+	void Lock();
+
+	///标记为个改完成。
+	void Unlock();
+
+	///标记为已经释放了
+	void Release();
+
+	//标记为删除
+	void Destroy();
 
 	///判断是否被占有用
 	BOOL islock()const;
 
-	///标记为个改完成。
-	void unlock();
+	inline void useit();
 
-	void useit();
-
-	///标记为已经释放了
-	void release();
-
-	void destroy();
-
-	BOOL isDestroy() const;
+	inline BOOL isDestroy() const;
 
 	BOOL isRelease() const;
 
 	time_t getLastMotifyTime();
 
+	inline SharedMemoryStatus GetStatus();
+
+	UINT32 GetCheckCode();
+
 	///是否在使用
-	BOOL isUse() const;
+	inline BOOL isUse() const;
 
-	void reset();
-
-	UINT32					   m_dwCheckCode;
-	SharedMemoryState          m_State;
-	time_t                     m_updatetime;	///最后一次修改时间
+	inline void reset();
+private:
+	UINT32					   m_CheckCode;
+	SharedMemoryStatus         m_Status;
+	time_t                     m_UpdateTime;	///最后一次修改时间
 };
 
 ///记录每个T块的状态
@@ -57,7 +63,7 @@ struct _SMBlock
 {
 	UINT32			m_dwIndex;      //数据当前编号
 	BOOL			m_bUse;         //是否在使用true是正在使用，false是没有使用
-	BOOL			m_bNewBlock;	///是否是刚刚新创建的区块
+	BOOL			m_bNewBlock;	//是否是刚刚新创建的区块
 	time_t			m_beforeTime;   //DS服务器更新完成后回写的信息时间。
 	time_t          m_afterTime;
 	_SMBlock()
@@ -116,7 +122,6 @@ private:
 	///创建一个新页
 	BOOL NewPage();
 
-
 	/**
 	* @brief		初始化数据区域
 	* @details		数据清0，并设置保护区域
@@ -128,14 +133,11 @@ private:
 
 
 public:
-
 	///数据库服务器不需要初始化map,逻辑服务器才需要,所以分开
 	void InitToMap();
 
-
 	/**是否是首创共享内存*/
 	BOOL IsFirstCreated();
-
 
 	/**从共享内存里恢复其他页*/
 	void ImportOtherPage();
@@ -143,24 +145,21 @@ public:
 	/**获取数量*/
 	const UINT32 GetCount()const;
 
-	/**获取还有多少块空闲内存
-	*/
+	/**获取还有多少块空闲内存	*/
 	UINT32 GetFreeCount()const;
 
 	///获取已经使用了多少块
 	UINT32 GetUseCount()const;
 
-	/**通过id获取原始内存中的描述块指针
-	*/
+	/**通过id获取原始内存中的描述块指针*/
 	virtual _SMBlock* GetSMBbyRawIndex(INT32 index);
 
-	/**通过id获取原始内存中的描述块指针
-	*/
+	/**通过id获取原始内存中的描述块指针*/
 	virtual ShareObject*  GetObjectByRawindex(UINT32 index);
 
 	const UINT32 GetRawMemoryBlockSize();
 
-	const INT32 GetBlockSize() { return m_rawblockSize; }
+	const INT32 GetBlockSize();
 
 	/*处理已用区块中被数据库服务器释放的区块*/
 	void ProcessCleanDirtyData();
@@ -172,6 +171,8 @@ public:
 
 	/**释放一块已经不再使用的内存*/
 	virtual BOOL DestoryObject(ShareObject* pobject);
+
+	mapUsedSMBlock& GetUsedDataList();
 };
 
 template<typename T>
@@ -212,8 +213,17 @@ public:
 	}
 };
 
+class DataWriterBase
+{
+public:
+	DataWriterBase() {};
 
-template <typename T> class DataWriter
+	virtual ~DataWriterBase() {};
+
+	virtual BOOL SaveModifyToDB(IDBInterface* pdb) = 0;
+};
+
+template <typename T> class DataWriter : public DataWriterBase
 {
 public:
 	DataWriter(const UINT32& nModuleID, UINT32 nCount)
@@ -250,7 +260,7 @@ public:
 		}
 
 		INT32 newtimes = 0, writetimes = 0, deletetimes = 0, releasetime = 0;
-		BOOL hasOprate = false; //是否有操作
+		BOOL hasOprate = false;
 		///获取所有修改过的数据,getRawMemoryBlockSize会重新计算所有共享块，
 		UINT32 temblockSize = m_MemoryPool->GetRawMemoryBlockSize();
 		for (UINT32 r = 0; r < temblockSize; r++)
@@ -269,7 +279,7 @@ public:
 			{
 				continue;
 			}
-			if (pdata->m_dwCheckCode != BLOCK_CHECK_CODE)
+			if (pdata->GetCheckCode() != BLOCK_CHECK_CODE)
 			{
 				continue;
 			}
@@ -277,12 +287,12 @@ public:
 			{
 				continue;
 			}
-			///正在修改数据,跳过
+
 			if (pdata->islock())
 			{
 				continue;
 			}
-			///优先回调删除
+
 			if (pdata->isDestroy())
 			{
 				pdata->Delete(pdb);
@@ -309,7 +319,6 @@ public:
 			beforeTime = pBlock->m_beforeTime;
 			afterTime = pBlock->m_afterTime;
 			BOOL needsave = false;
-			///保存完毕的时间大于保存前的时间,那么上一次保存成功的
 			if (afterTime >= beforeTime)
 			{
 				if (lastMotifyTime > beforeTime)
@@ -319,7 +328,7 @@ public:
 			}
 			else
 			{
-				needsave = true;///上一次保存失败,立即保存
+				needsave = true;
 			}
 
 			if (needsave)
@@ -336,9 +345,9 @@ public:
 			if (pdata->isRelease())
 			{
 				///释放的时候执行一次保存...如果上次没有保存成功或者，释放前修改了就再保存一次
-				if ((lastMotifyTime > 0) && (afterTime < beforeTime || lastMotifyTime > beforeTime)) ///change by dsq
+				if ((lastMotifyTime > 0) && (afterTime < beforeTime || lastMotifyTime > beforeTime))
 				{
-					pBlock->m_beforeTime = time(NULL);/// add by dsq
+					pBlock->m_beforeTime = time(NULL);
 					pdata->Update(pdb);
 					hasOprate = true;
 					writetimes++;
@@ -347,17 +356,10 @@ public:
 				m_MemoryPool->DestoryObject(pdata);
 				releasetime++;
 			}
-
 		}
 
+		//CLog::GetInstancePtr()->LogError("moduleid:%d write:%d new:%d desdroy:%d release:%d");
 
-		//xLogMessager::getSingleton().logMessage(std::string("sync db module:") + m_moduleName +
-		//                                        std::string(" finished.write:") + Helper::IntToString(writetimes) +
-		//                                        std::string(" .new:") + Helper::IntToString(newtimes) +
-		//                                        std::string(" .desdroy:") + Helper::IntToString(deletetimes) +
-		//                                        std::string(".release:") + Helper::IntToString(releasetime),
-		//                                        Log_ErrorLevel
-		//                                       );
 		return hasOprate;
 	}
 private:

@@ -21,9 +21,10 @@ BOOL CDBManager::Init()
 
 	if(!m_DBConnection.open(strHost.c_str(), strUser.c_str(), strPwd.c_str(), strDb.c_str(), nPort))
 	{
-		CLog::GetInstancePtr()->LogError("CDBManager::Init Error: Can not open database!!!");
+		CLog::GetInstancePtr()->LogError("CDBManager::Init Error: Can not open mysql database! Reason:%s", m_DBConnection.GetErrorMsg());
 		return FALSE;
 	}
+
 	return TRUE;
 }
 
@@ -41,6 +42,8 @@ BOOL CDBManager::GetRoleList(UINT64 u64AccountID, RoleListAck& Ack)
 	snprintf(szSql, SQL_BUFF_LEN, "select * from player where account_id = %lld", u64AccountID);
 
 	CppMySQLQuery  QueryRes = m_DBConnection.querySQL(szSql);
+
+	Ack.set_accountid(u64AccountID);
 
 	while(!QueryRes.eof())
 	{
@@ -245,21 +248,118 @@ BOOL CDBManager::GetPetData(UINT64 u64ID, DBRoleLoginAck& Ack)
 
 BOOL CDBManager::GetPartnerData(UINT64 u64ID, DBRoleLoginAck& Ack)
 {
+	CHAR szSql[SQL_BUFF_LEN] = { 0 };
+
+	snprintf(szSql, SQL_BUFF_LEN, "select * from partner where roleid = %lld", u64ID);
+
+	CppMySQLQuery  QueryRes = m_DBConnection.querySQL(szSql);
+	DBPartnerData* pData = NULL;
+	while (!QueryRes.eof())
+	{
+		if (pData == NULL)
+		{
+			pData = Ack.mutable_partnerdata();
+		}
+		DBPartnerItem* pItem = pData->add_partnerlist();
+		pItem->set_guid(QueryRes.getInt64Field("guid", 0));
+		pItem->set_roleid(QueryRes.getInt64Field("roleid", 0));
+		pItem->set_partnerid(QueryRes.getIntField("partnerid", 0));
+		pItem->set_refinelevel(QueryRes.getIntField("refinelvl", 0));
+		pItem->set_strengthlvl(QueryRes.getIntField("strengthlvl", 0));
+		pItem->set_starlevel(QueryRes.getIntField("starlvl", 0));
+		pItem->set_setpos(QueryRes.getIntField("setpos", 0));
+		QueryRes.nextRow();
+	}
+
 	return TRUE;
 }
 
 BOOL CDBManager::GetTaskData(UINT64 u64ID, DBRoleLoginAck& Ack)
 {
+	CHAR szSql[SQL_BUFF_LEN] = { 0 };
+
+	snprintf(szSql, SQL_BUFF_LEN, "select * from task where roleid = %lld", u64ID);
+
+	CppMySQLQuery  QueryRes = m_DBConnection.querySQL(szSql);
+	DBTaskData* pData = NULL;
+	while (!QueryRes.eof())
+	{
+		if (pData == NULL)
+		{
+			pData = Ack.mutable_taskdata();
+		}
+		DBTaskItem* pItem = pData->add_tasklist();
+		pItem->set_taskid(QueryRes.getIntField("id", 0));
+		pItem->set_roleid(QueryRes.getInt64Field("roleid", 0));
+		pItem->set_status(QueryRes.getIntField("task_status", 0));
+		pItem->set_progress(QueryRes.getIntField("progress", 0));
+
+		QueryRes.nextRow();
+	}
 	return TRUE;
 }
 
 BOOL CDBManager::GetMountData(UINT64 u64ID, DBRoleLoginAck& Ack)
 {
+	CHAR szSql[SQL_BUFF_LEN] = { 0 };
+
+	snprintf(szSql, SQL_BUFF_LEN, "select * from mount where roleid = %lld", u64ID);
+
+	CppMySQLQuery  QueryRes = m_DBConnection.querySQL(szSql);
+	DBMountData* pData = NULL;
+	while (!QueryRes.eof())
+	{
+		if (pData == NULL)
+		{
+			pData = Ack.mutable_mountdata();
+		}
+		DBMountItem* pItem = pData->add_mountlist();
+		pItem->set_guid(QueryRes.getInt64Field("guid", 0));
+		pItem->set_roleid(QueryRes.getInt64Field("roleid", 0));
+		pItem->set_mountid(QueryRes.getIntField("mountid", 0));
+		pItem->set_refinelevel(QueryRes.getIntField("refinelvl", 0));
+		pItem->set_strengthlvl(QueryRes.getIntField("strengthlvl", 0));
+		pItem->set_starlevel(QueryRes.getIntField("starlvl", 0));
+		pItem->set_isusing(QueryRes.getIntField("isuse", 0));
+		QueryRes.nextRow();
+	}
 	return TRUE;
 }
 
 BOOL CDBManager::GetActivtyData(UINT64 u64ID, DBRoleLoginAck& Ack)
 {
+	CHAR szSql[SQL_BUFF_LEN] = { 0 };
+
+	snprintf(szSql, SQL_BUFF_LEN, "select * from activity where roleid = %lld", u64ID);
+
+	CppMySQLQuery  QueryRes = m_DBConnection.querySQL(szSql);
+	DBActivityData* pData = NULL;
+	while (!QueryRes.eof())
+	{
+		if (pData == NULL)
+		{
+			pData = Ack.mutable_activitydata();
+		}
+
+		DBActivityItem* pItem = pData->add_activitylist();
+		INT32 nLen = QueryRes.getIntField("data_len", 0);
+		pItem->set_activityid(QueryRes.getIntField("id", 0));
+		pItem->set_activitytype(QueryRes.getIntField("type", 0));
+		pItem->set_roleid(QueryRes.getIntField("roleid", 0));
+		pItem->set_jointime(QueryRes.getIntField("join_time", 0));
+		pItem->set_datalen(nLen);
+
+
+		if (nLen > 0)
+		{
+			INT32 nLen2 = 0;
+			const unsigned char* pData = QueryRes.getBlobField("data", nLen2);
+			pItem->set_data(pData, nLen);
+		}
+
+		QueryRes.nextRow();
+	}
+
 	return TRUE;
 }
 
@@ -275,6 +375,30 @@ BOOL CDBManager::GetCounterData(UINT64 u64ID, DBRoleLoginAck& Ack)
 
 BOOL CDBManager::GetFriendData(UINT64 u64ID, DBRoleLoginAck& Ack)
 {
+	return TRUE;
+}
+
+BOOL CDBManager::GetSkillData(UINT64 u64ID, DBRoleLoginAck& Ack)
+{
+	CHAR szSql[SQL_BUFF_LEN] = { 0 };
+
+	snprintf(szSql, SQL_BUFF_LEN, "select * from skill where roleid = %lld", u64ID);
+
+	CppMySQLQuery  QueryRes = m_DBConnection.querySQL(szSql);
+	DBSkillData* pData = NULL;
+	while (!QueryRes.eof())
+	{
+		if (pData == NULL)
+		{
+			pData = Ack.mutable_skilldata();
+		}
+		DBSkillItem* pItem = pData->add_skilllist();
+		pItem->set_skillid(QueryRes.getIntField("id", 0));
+		pItem->set_roleid(QueryRes.getInt64Field("roleid", 0));
+		pItem->set_level(QueryRes.getIntField("level", 0));
+		pItem->set_keypos(QueryRes.getIntField("key_pos", 0));
+		QueryRes.nextRow();
+	}
 	return TRUE;
 }
 

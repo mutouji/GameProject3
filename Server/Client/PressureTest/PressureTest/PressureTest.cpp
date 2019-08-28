@@ -4,6 +4,8 @@
 #include "stdafx.h"
 #include "ClientObject.h"
 #include "..\Src\ServerEngine\CommonThreadFunc.h"
+#include "..\Src\ServerEngine\CommonFunc.h"
+#include "..\Src\ServerEngine\CommonSocket.h"
 
 #define RUN_TIME 50
 
@@ -44,6 +46,8 @@ int _tmain(int argc, _TCHAR* argv[])
 	printf("请输入需要启动的机器人数目: ");
 	scanf_s("%d", &nRobotNum);
 
+	CommonSocket::InitNetwork();
+
 	if(nRobotNum <= 0)
 	{
 		return 0;
@@ -61,7 +65,7 @@ int _tmain(int argc, _TCHAR* argv[])
 		sprintf(szBuff, "zhang%d", i);
 		pClientSpaceObject->m_strRoleName = szBuff;
 
-		pClientSpaceObject->m_dwCarrerID = rand() % 4 + 1;;
+		pClientSpaceObject->m_dwCarrerID = rand() % 4 + 1;
 
 		g_vtClientList.push_back(pClientSpaceObject);
 	}

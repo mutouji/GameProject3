@@ -45,11 +45,11 @@ BOOL CSceneManager::Uninit()
 	return TRUE;
 }
 
-BOOL CSceneManager::CreateScene(UINT32 dwCopyID, UINT32 dwCopyGuid, UINT32 dwCopyType, UINT32 dwPlayerNum)
+BOOL CSceneManager::CreateScene(UINT32 dwCopyID, UINT32 dwCopyGuid, UINT32 dwCopyType, UINT32 dwPlayerNum, UINT64 uCreateKey)
 {
 	CScene* pScene = new CScene;
 
-	if(!pScene->Init(dwCopyID, dwCopyGuid, dwCopyType, dwPlayerNum))
+	if(!pScene->Init(dwCopyID, dwCopyGuid, dwCopyType, dwPlayerNum, uCreateKey))
 	{
 		ASSERT_FAIELD;
 
@@ -74,7 +74,12 @@ BOOL CSceneManager::DispatchPacket(NetPacket* pNetPacket)
 	}
 
 	CScene* pScene = GetSceneByCopyGuid(pPacketHeader->dwUserData);
-	ERROR_RETURN_FALSE(pScene != NULL);
+	if (pScene == NULL)
+	{
+		CLog::GetInstancePtr()->LogError("Error : Invalid CopyGuid:%d, MessageID:%d", pPacketHeader->dwUserData, pNetPacket->m_dwMsgID);
+		return TRUE;
+	}
+
 	if (pScene->DispatchPacket(pNetPacket))
 	{
 		return TRUE;
@@ -100,8 +105,9 @@ BOOL CSceneManager::OnUpdate( UINT64 uTick )
 	{
 		CScene* pScene = itor->second;
 
-		if((pScene->GetLastTick() > uTick) && (pScene->GetLastTick() - uTick < FPS_TIME_TICK))
+		if((pScene->GetLastTick() < uTick) && ( uTick - pScene->GetLastTick() < FPS_TIME_TICK))
 		{
+			itor++;
 			continue;
 		}
 
@@ -124,7 +130,7 @@ BOOL CSceneManager::OnUpdate( UINT64 uTick )
 	return TRUE;
 }
 
-UINT32 CSceneManager::MakeCopyID()
+UINT32 CSceneManager::MakeCopyGUID()
 {
 	m_MaxCopyBaseID += 1;
 
@@ -163,7 +169,7 @@ BOOL CSceneManager::OnMsgCreateSceneReq(NetPacket* pNetPacket)
 	ERROR_RETURN_TRUE(Req.copyid() != 0);
 	ERROR_RETURN_TRUE(Req.createparam() != 0);
 
-	UINT32 dwNewCopyGuid = MakeCopyID();
+	UINT32 dwNewCopyGuid = MakeCopyGUID();
 
 	CreateNewSceneAck Ack;
 	Ack.set_createparam(Req.createparam());
@@ -172,7 +178,7 @@ BOOL CSceneManager::OnMsgCreateSceneReq(NetPacket* pNetPacket)
 	Ack.set_copyid(Req.copyid());
 	Ack.set_playernum(Req.playernum());
 	Ack.set_copytype(Req.copytype());
-	if (!CreateScene(Req.copyid(), dwNewCopyGuid, Req.copytype(), Req.playernum()))
+	if (!CreateScene(Req.copyid(), dwNewCopyGuid, Req.copytype(), Req.playernum(), Req.createparam()))
 	{
 		Ack.set_retcode(MRC_UNKNOW_ERROR);
 	}
@@ -188,7 +194,7 @@ BOOL CSceneManager::OnMsgCreateSceneReq(NetPacket* pNetPacket)
 
 BOOL CSceneManager::LoadMainScene()
 {
-	if(!CreateScene(6, MakeCopyID(), 3, 0))
+	if(!CreateScene(6, MakeCopyGUID(), 3, 0, 0))
 	{
 		ASSERT_FAIELD;
 

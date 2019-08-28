@@ -21,6 +21,7 @@ CAccountObjectMgr::CAccountObjectMgr()
 	m_IsRun			= FALSE;
 	m_hThread		= NULL;
 	m_bCrossChannel = FALSE;
+	m_u64MaxID		= 0;
 }
 
 CAccountObjectMgr::~CAccountObjectMgr()
@@ -41,7 +42,7 @@ BOOL CAccountObjectMgr::LoadCacheAccount()
 
 	if(!m_DBConnection.open(strHost.c_str(), strUser.c_str(), strPwd.c_str(), strDb.c_str(), nPort))
 	{
-		CLog::GetInstancePtr()->LogError("LoadCacheAccount Error: Can not open database!!!");
+		CLog::GetInstancePtr()->LogError("LoadCacheAccount Error: Can not open mysql database! Reason:%s", m_DBConnection.GetErrorMsg());
 		return FALSE;
 	}
 
@@ -59,9 +60,9 @@ BOOL CAccountObjectMgr::LoadCacheAccount()
 		pTempObject->m_uCreateTime	= QueryResult.getInt64Field("create_time");
 		pTempObject->m_uSealTime = QueryResult.getInt64Field("seal_end_time");
 
-		if(m_u64MaxID < QueryResult.getInt64Field("id"))
+		if(m_u64MaxID < (UINT64)QueryResult.getInt64Field("id"))
 		{
-			m_u64MaxID = QueryResult.getInt64Field("id");
+			m_u64MaxID = (UINT64)QueryResult.getInt64Field("id");
 		}
 
 		QueryResult.nextRow();

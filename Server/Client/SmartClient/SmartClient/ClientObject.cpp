@@ -2,7 +2,6 @@
 #include "ClientObject.h"
 #include <complex>
 #include "..\Src\Message\Msg_RetCode.pb.h"
-#include "PacketHeader.h"
 #include "..\Src\Message\Msg_Move.pb.h"
 #include "..\Src\Message\Game_Define.pb.h"
 #include "..\Src\Message\Msg_Copy.pb.h"
@@ -10,6 +9,17 @@
 #include "..\Src\Message\Msg_LoginCltData.pb.h"
 #include "..\Src\ServerEngine\XMath.h"
 #include "..\Src\ServerEngine\CommonFunc.h"
+#include "..\Src\ServerEngine\PacketHeader.h"
+
+#define PROCESS_MESSAGE_ITEM_CLIENT__(dwMsgID, Func) \
+		case dwMsgID:{\
+		if(Func(dwMsgID, PacketBuf, BufLen)){return TRUE;}}break;
+
+
+#define PROCESS_MESSAGE_ITEM_CLIENT(dwMsgID, Func) \
+		case dwMsgID:{\
+		printf("---Receive Message:[%s]---- \n", #dwMsgID); \
+		if(Func(dwMsgID, PacketBuf, BufLen)){return TRUE;}}break;
 
 int g_LoginReqCount = 0;
 int g_LoginCount = 0;
@@ -24,7 +34,7 @@ CClientObject::CClientObject(void)
 	m_x = 0;
 	m_y = 0;
 	m_z = 13;
-
+	m_dwCarrerID = 0;
 	m_ft = PI * 2 * (rand() % 360) / 360;
 
 	m_ClientConnector.RegisterMsgHandler((IMessageHandler*)this);
@@ -45,9 +55,9 @@ BOOL CClientObject::DispatchPacket(UINT32 dwMsgID, CHAR* PacketBuf, INT32 BufLen
 			PROCESS_MESSAGE_ITEM_CLIENT(MSG_ROLE_LIST_ACK,			OnMsgRoleListAck);
 			PROCESS_MESSAGE_ITEM_CLIENT(MSG_NOTIFY_INTO_SCENE,		OnMsgNotifyIntoScene);
 			PROCESS_MESSAGE_ITEM_CLIENT(MSG_ROLE_CREATE_ACK,		OnMsgCreateRoleAck);
-			PROCESS_MESSAGE_ITEM_CLIENT(MSG_OBJECT_NEW_NTY,			OnMsgObjectNewNty);
-			PROCESS_MESSAGE_ITEM_CLIENT(MSG_OBJECT_ACTION_NTY,		OnMsgObjectActionNty);
-			PROCESS_MESSAGE_ITEM_CLIENT(MSG_OBJECT_REMOVE_NTY,		OnMsgObjectRemoveNty);
+			PROCESS_MESSAGE_ITEM_CLIENT(MSG_OBJECT_NEW_NTF,			OnMsgObjectNewNty);
+			PROCESS_MESSAGE_ITEM_CLIENT(MSG_OBJECT_CHANGE_NTF,		OnMsgObjectChangeNty);
+			PROCESS_MESSAGE_ITEM_CLIENT(MSG_OBJECT_REMOVE_NTF,		OnMsgObjectRemoveNty);
 			PROCESS_MESSAGE_ITEM_CLIENT(MSG_ENTER_SCENE_ACK,		OnCmdEnterSceneAck);
 			PROCESS_MESSAGE_ITEM_CLIENT(MSG_ROLE_LOGIN_ACK,			OnMsgRoleLoginAck);
 			PROCESS_MESSAGE_ITEM_CLIENT(MSG_ROLE_OTHER_LOGIN_NTY,	OnMsgOtherLoginNty);
@@ -118,14 +128,14 @@ BOOL CClientObject::OnMsgObjectNewNty(UINT32 dwMsgID, CHAR* PacketBuf, INT32 Buf
 	return TRUE;
 }
 
-BOOL CClientObject::OnMsgObjectActionNty(UINT32 dwMsgID, CHAR* PacketBuf, INT32 BufLen)
+BOOL CClientObject::OnMsgObjectChangeNty(UINT32 dwMsgID, CHAR* PacketBuf, INT32 BufLen)
 {
 	ObjectActionNty Nty;
 	Nty.ParsePartialFromArray(PacketBuf, BufLen);
 	for(int i = 0; i < Nty.actionlist_size(); i++)
 	{
-		const ActionItem& Item = Nty.actionlist(i);
-		float y = Item.ft();
+		const ActionNtyItem& Item = Nty.actionlist(i);
+		float y = Item.hostft();
 	}
 
 
@@ -144,14 +154,13 @@ BOOL CClientObject::OnUpdate( UINT32 dwTick )
 
 	if(m_dwHostState == ST_NONE)
 	{
-		if(m_ClientConnector.GetConnectState() == Not_Connect)
+		if(m_ClientConnector.GetConnectState() == ECS_NO_CONNECT)
 		{
-			m_ClientConnector.SetClientID(0);
-			m_ClientConnector.ConnectToServer("127.0.0.1", 5678);
+			m_ClientConnector.ConnectTo("127.0.0.1", 5678);
 			//m_ClientConnector.ConnectToServer("47.93.31.69", 5678);
 		}
 
-		if(m_ClientConnector.GetConnectState() == Succ_Connect)
+		if(m_ClientConnector.GetConnectState() == ECS_CONNECTED)
 		{
 			SendNewAccountReq(m_strAccountName, m_strPassword);
 
@@ -251,7 +260,7 @@ BOOL CClientObject::OnMsgAccountLoginAck(UINT32 dwMsgID, CHAR* PacketBuf, INT32 
 	Ack.ParsePartialFromArray(PacketBuf, BufLen);
 	PacketHeader* pHeader = (PacketHeader*)PacketBuf;
 
-	if(Ack.retcode() == MRC_FAILED)
+	if(Ack.retcode() == MRC_UNKNOW_ERROR)
 	{
 		MessageBox(NULL, "登录失败! 密码或账号不对!!", "提示", MB_OK);
 		m_dwHostState = ST_Overed;
@@ -273,7 +282,7 @@ BOOL CClientObject::OnMsgSelectServerAck(UINT32 dwMsgID, CHAR* PacketBuf, INT32 
 	Ack.ParsePartialFromArray(PacketBuf, BufLen);
 	PacketHeader* pHeader = (PacketHeader*)PacketBuf;
 	m_ClientConnector.DisConnect();
-	m_ClientConnector.ConnectToServer(Ack.serveraddr(), Ack.serverport());
+	m_ClientConnector.ConnectTo(Ack.serveraddr(), Ack.serverport());
 	m_dwHostState = ST_SelectSvrOK;
 	return TRUE;
 }
@@ -389,17 +398,17 @@ BOOL CClientObject::MoveForward(FLOAT fDistance)
 VOID CClientObject::TestMove()
 {
 	ObjectActionReq Req;
-	ActionItem* pItem =  Req.add_actionlist();
+	ActionReqItem* pItem =  Req.add_actionlist();
 	pItem->set_actionid(AT_WALK);
 	pItem->set_objectguid(m_RoleIDList[0]);
 
-	UINT32 dwTimeDiff = CommonFunc::GetTickCount() - m_dwMoveTime;
-	if(dwTimeDiff < 160)
+	UINT64 uTimeDiff = CommonFunc::GetTickCount() - m_uMoveTime;
+	if(uTimeDiff < 160)
 	{
 		return ;
 	}
 
-	m_dwMoveTime = CommonFunc::GetTickCount();
+	m_uMoveTime = CommonFunc::GetTickCount();
 
 	MoveForward(1.0f);
 
@@ -425,10 +434,10 @@ VOID CClientObject::TestMove()
 		m_ft = abs(m_ft - 90);
 	}
 
-	pItem->set_x(m_x);
-	pItem->set_y(0);
-	pItem->set_z(m_z);
-	pItem->set_ft(m_ft);
+	pItem->set_hostx(m_x);
+	pItem->set_hosty(0);
+	pItem->set_hostz(m_z);
+	pItem->set_hostft(m_ft);
 
 	m_ClientConnector.SendData(MSG_OBJECT_ACTION_REQ, Req, m_RoleIDList[0], m_dwCopyGuid);
 }
@@ -482,7 +491,7 @@ BOOL CClientObject::SendAbortCopyReq()
 
 BOOL CClientObject::OnMsgOtherLoginNty( UINT32 dwMsgID, CHAR* PacketBuf, INT32 BufLen )
 {
-	m_ClientConnector.CloseConnector();
+	m_ClientConnector.DisConnect();
 	return TRUE;
 }
 

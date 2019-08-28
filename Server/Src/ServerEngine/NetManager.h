@@ -61,13 +61,13 @@ public:
 
 	BOOL	EventDelete(CConnection* pConnection);
 
-	BOOL	PostSendOperation(CConnection* pConnection);
+	BOOL	PostSendOperation(CConnection* pConnection, BOOL bCheck = TRUE);
 
 	CConnection*	AssociateCompletePort(SOCKET hSocket, BOOL bConnect);
 
-	CConnection*	ConnectToOtherSvr(std::string strIpAddr, UINT16 sPort);
+	CConnection*	ConnectTo_Sync(std::string strIpAddr, UINT16 sPort);
 
-	CConnection*	ConnectToOtherSvrEx(std::string strIpAddr, UINT16 sPort);
+	CConnection*	ConnectTo_Async(std::string strIpAddr, UINT16 sPort);
 
 public:
 	SOCKET				m_hListenSocket;

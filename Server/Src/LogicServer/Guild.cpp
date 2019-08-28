@@ -15,7 +15,7 @@ CGuild::~CGuild()
 {
 	if(m_pGuildData != NULL)
 	{
-		m_pGuildData->release();
+		m_pGuildData->Release();
 	}
 }
 
@@ -28,11 +28,11 @@ BOOL CGuild::LoadGuildMember(CppMySQLQuery& QueryResult)
 {
 	UINT64 uRoleID = QueryResult.getInt64Field("roleid");
 
-	MemberDataObject* pMemberObject = g_pMemberDataObjectPool->NewObject(FALSE);
+	MemberDataObject* pMemberObject = DataPool::CreateObject<MemberDataObject>(ESD_GUILD_MEMBER, FALSE);
 	pMemberObject->m_uRoleID = uRoleID;
 	pMemberObject->m_uGuildID = m_pGuildData->m_uGuid;
 	pMemberObject->m_Pos = QueryResult.getIntField("pose");
-	pMemberObject->m_dwJoinTime = QueryResult.getInt64Field("join_time");
+	pMemberObject->m_uJoinTime = QueryResult.getInt64Field("join_time");
 
 	m_mapMemberData.insert(std::make_pair(uRoleID, pMemberObject));
 
@@ -83,13 +83,13 @@ MemberDataObject* CGuild::GetLeader()
 
 MemberDataObject* CGuild::AddGuildMember(UINT64 uRoleID)
 {
-	MemberDataObject* pMemberObject = g_pMemberDataObjectPool->NewObject(TRUE);
-	pMemberObject->lock();
+	MemberDataObject* pMemberObject = DataPool::CreateObject<MemberDataObject>(ESD_GUILD_MEMBER, TRUE);
+	pMemberObject->Lock();
 	pMemberObject->m_uRoleID = uRoleID;
 	pMemberObject->m_uGuildID = m_pGuildData->m_uGuid;
 	pMemberObject->m_Pos = EGP_MEMBER;
-	pMemberObject->m_dwJoinTime = CommonFunc::GetCurrTime();
-	pMemberObject->unlock();
+	pMemberObject->m_uJoinTime = CommonFunc::GetCurrTime();
+	pMemberObject->Unlock();
 
 	m_mapMemberData.insert(std::make_pair(uRoleID, pMemberObject));
 

@@ -6,8 +6,6 @@ MonsterCreator::MonsterCreator(CScene* pScene)
 {
 	m_pScene = pScene;
 
-	m_bAllFinished = FALSE;
-
 	m_dwCurWave = -1;
 }
 
@@ -18,11 +16,11 @@ MonsterCreator::~MonsterCreator()
 
 BOOL MonsterCreator::ReadFromXml(rapidxml::xml_node<char>* pNode)
 {
-	for(auto pWaveNode = pNode->first_node("MapActWave"); pWaveNode != NULL; pWaveNode = pWaveNode->next_sibling("MapActWave"))
+	for(auto pWaveNode = pNode->first_node("DTWave"); pWaveNode != NULL; pWaveNode = pWaveNode->next_sibling("DTWave"))
 	{
 		MonsterWave Wave;
 		//Wave.m_dwGenType = CommonConvert::StringToInt(pWaveNode->first_attribute("gentype")->value());
-		for(auto pObjectNode = pWaveNode->first_node("MapCallMonster"); pObjectNode != NULL; pObjectNode = pObjectNode->next_sibling("MapCallMonster"))
+		for(auto pObjectNode = pWaveNode->first_node("DTMonster"); pObjectNode != NULL; pObjectNode = pObjectNode->next_sibling("DTMonster"))
 		{
 			MonsterData Monster;
 			Monster.m_dwActorID = CommonConvert::StringToInt(pObjectNode->first_attribute("MonsterID")->value());
@@ -58,20 +56,28 @@ BOOL MonsterCreator::GenMonsterWave(INT32 dwWaveIndex)
 
 	MonsterWave& Wave = m_MonsterVaveList.at(dwWaveIndex);
 
-	std::vector<MonsterData>  m_vtMonsterList;
-
 	for( std::vector<MonsterData>::iterator itor = Wave.m_vtMonsterList.begin(); itor != Wave.m_vtMonsterList.end(); itor++)
 	{
 		MonsterData* pData = &(*itor);
 		m_pScene->CreateMonster(pData->m_dwActorID, pData->m_dwCamp, pData->m_x, pData->m_y, pData->m_z, pData->m_ft);
 	}
 
+	Wave.m_bDone = TRUE;
+
 	return TRUE;
 }
 
 BOOL MonsterCreator::IsAllFinished()
 {
-	return m_bAllFinished;
+	for (int i = 0; i < m_MonsterVaveList.size(); i++)
+	{
+		if (!m_MonsterVaveList.at(i).m_bDone)
+		{
+			return FALSE;
+		}
+	}
+
+	return TRUE;
 }
 
 BOOL MonsterCreator::OnObjectDie(CSceneObject* pObject)
@@ -82,6 +88,16 @@ BOOL MonsterCreator::OnObjectDie(CSceneObject* pObject)
 	}
 
 	GenMonsterWave(m_dwCurWave + 1);
+
+	return TRUE;
+}
+
+BOOL MonsterCreator::OnPlayerMove(FLOAT x, FLOAT z)
+{
+	if (IsAllFinished())
+	{
+		return TRUE;
+	}
 
 	return TRUE;
 }

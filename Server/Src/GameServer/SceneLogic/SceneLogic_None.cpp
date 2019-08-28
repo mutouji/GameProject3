@@ -30,7 +30,7 @@ BOOL SceneLogic_None::OnPlayerEnter(CSceneObject* pPlayer)
 	return TRUE;
 }
 
-BOOL SceneLogic_None::OnPlayerLeave(CSceneObject* pPlayer)
+BOOL SceneLogic_None::OnPlayerLeave(CSceneObject* pPlayer, BOOL bDisConnect)
 {
 	return FALSE;
 }
@@ -39,13 +39,10 @@ BOOL SceneLogic_None::Update(UINT64 uTick)
 {
 	SceneLogicBase::Update(uTick);
 
-	if(m_pScene->GetStartTime() == 0)
-	{
-		if(CommonFunc::GetCurrTime() - m_pScene->GetCreateTime() > 60)
-		{
-			SetFinished();
-		}
-	}
+	return TRUE;
+}
 
+BOOL SceneLogic_None::OnTimeUP()
+{
 	return TRUE;
 }

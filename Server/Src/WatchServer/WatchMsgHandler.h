@@ -1,21 +1,20 @@
 ﻿#ifndef _WATCH_MSG_HANDLER_H_
 #define _WATCH_MSG_HANDLER_H_
 
-#include "../ConfigData/ConfigStruct.h"
+#include "../StaticData/StaticStruct.h"
 #include "RapidXml.h"
 
 enum EProcessStatus
 {
-	EPS_Init,  //状态也没有
-	EPS_Start, //己经执行了启动
-	EPS_ConnSucceed,
+	EPS_Stop,  //停止状态
+	EPS_Starting,//启动中
+	EPS_Connected, //己连接
 };
 
 struct ServerProcessInfo
 {
 	UINT64			ProcessID;
 	UINT32			ConnID;
-	INT32			Port;
 	INT32			KillAll;
 	UINT64			LastHeartTick;
 	std::string		Params;
@@ -42,21 +41,25 @@ public:
 	BOOL		OnNewConnect(CConnection* pConn);
 
 	BOOL		OnCloseConnect(CConnection* pConn);
+
+	BOOL		OnSecondTimer();
 public:
 	//*********************消息处理定义开始******************************
 	BOOL OnMsgUpdateServerReq(NetPacket* pNetPacket);  //更新服务器
 	BOOL OnMsgStartServerReq(NetPacket* pNetPacket);
 	BOOL OnMsgStopServerReq(NetPacket* pNetPacket);
-	BOOL OnMsgServerHeartAck(NetPacket* pNetPacket);
-	BOOL OnMsgGmCommandReq(NetPacket* pNetPacket);
+	BOOL OnMsgServerHeartReq(NetPacket* pNetPacket);
+	BOOL OnMsgWebCommandReq(NetPacket* pNetPacket);
 	//*********************消息处理定义结束******************************
 
+	BOOL UpdateServer_Thread();
 
 protected:
-
-	BOOL BootUpProcessList();
-
 	BOOL CheckProcessStatus(UINT64 uTick, UINT32 nIndex);
+
+	BOOL StartProcess(ServerProcessInfo& processData, INT32 nIndex);
+
+	BOOL StartAllProcess();
 
 	BOOL KillProcess(ServerProcessInfo& processData);
 
@@ -70,9 +73,9 @@ protected:
 
 	void SetStartWatch(BOOL bStart);
 
-	bool CanStartServer();
+	BOOL CanStartServer();
 
-	bool CancloseServer();
+	BOOL CanStopServer();
 
 private:
 

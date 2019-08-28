@@ -24,7 +24,7 @@ BOOL CFriendModule::OnDestroy()
 {
 	for(auto itor = m_mapFriendData.begin(); itor != m_mapFriendData.end(); itor++)
 	{
-		itor->second->release();
+		itor->second->Release();
 	}
 
 	m_mapFriendData.clear();
@@ -58,7 +58,7 @@ BOOL CFriendModule::ReadFromDBLoginData(DBRoleLoginAck& Ack)
 	for(int i = 0; i < FriendData.friendlist_size(); i++)
 	{
 		const DBFriendItem& FriendItem = FriendData.friendlist(i);
-		FriendDataObject* pObject = g_pFriendDataObjectPool->NewObject(FALSE);
+		FriendDataObject* pObject = DataPool::CreateObject<FriendDataObject>(ESD_FRIEND, FALSE);
 
 
 		m_mapFriendData.insert(std::make_pair(pObject->m_uFriendID, pObject));

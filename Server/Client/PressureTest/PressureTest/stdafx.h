@@ -19,15 +19,15 @@
 #include <WinSock2.h>
 #include <ws2tcpip.h>
 #include <mswsock.h>
+#include <mstcpip.h>
 #include <assert.h>
 #include <direct.h>
 #include <time.h>
-//#define ASSERT_FAIELD (ASSERT(false))
-
+#include <Mstcpip.h>
 #define ASSERT_FAIELD (assert(false))
-
+#ifndef ASSERT
 #define ASSERT assert
-
+#endif
 #pragma  comment(lib,"ws2_32")
 #pragma  comment(lib, "Mswsock")
 

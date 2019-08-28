@@ -1,6 +1,14 @@
 ﻿#include "stdafx.h"
 #include "ProxyPlayerMgr.h"
 
+CProxyPlayer::CProxyPlayer()
+{
+	m_u64RoleID = 0;
+	m_dwGameSvrID = 0;
+	m_dwConnID = 0;
+	m_dwCopyGuid = 0;
+}
+
 CProxyPlayer::~CProxyPlayer()
 {
 
@@ -32,6 +40,11 @@ VOID CProxyPlayer::SetGameSvrInfo( UINT32 dwSvrID, UINT32 dwCopyGuid )
 	m_dwCopyGuid = dwCopyGuid;
 }
 
+
+VOID CProxyPlayer::SetConnID(UINT32 dwConnID)
+{
+	m_dwConnID = dwConnID;
+}
 
 CProxyPlayerMgr::CProxyPlayerMgr(void)
 {

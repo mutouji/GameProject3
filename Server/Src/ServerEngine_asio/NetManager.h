@@ -5,6 +5,8 @@
 #include "boost/asio/ip/tcp.hpp"
 #include <boost/thread.hpp>
 #include <boost/thread/thread.hpp>
+#include "boost/asio/io_service.hpp"
+#include "boost/asio/connect.hpp"
 
 
 ////////////////////////////////////////////////
@@ -21,7 +23,7 @@ public:
 		return &NetManager;
 	}
 public:
-	BOOL	Start(UINT16 nPortNum,  UINT32 nMaxConn, IDataHandler* pBufferHandler);
+	BOOL	Start(UINT16 nPortNum,  UINT32 nMaxConn, IDataHandler* pBufferHandler, std::string &strListenIp);
 
 	BOOL	Close();
 
@@ -31,11 +33,17 @@ public:
 public:
 	BOOL	WaitForConnect();
 public:
-	CConnection*	ConnectToOtherSvr(std::string strIpAddr, UINT16 sPort);
+	
+	CConnection* ConnectTo_Async(std::string strIpAddr, UINT16 sPort);
+
+	CConnection* ConnectTo_Sync(std::string strIpAddr, UINT16 sPort);
 
 	void HandleConnect(CConnection* pConnection, const boost::system::error_code& e);
+
 	void HandleAccept(CConnection* pConnection, const boost::system::error_code& e);
 
+	BOOL PostSendOperation(CConnection* pConnection);
+	
 	boost::asio::ip::tcp::acceptor* m_pAcceptor;
 	boost::asio::io_service         m_IoService;
 	boost::thread*                   m_pWorkThread;

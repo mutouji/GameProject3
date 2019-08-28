@@ -66,7 +66,7 @@ protected:
     {\
         CLog::GetInstancePtr()->LogError("Error : File:%s, Func: %s Line:%d", __FILE__ , __FUNCTION__, __LINE__);\
         ASSERT_FAIELD; \
-        return TRUE;	\
+        return FALSE;	\
     }
 
 #define ERROR_RETURN_NULL(P) \
@@ -76,6 +76,23 @@ protected:
 	ASSERT_FAIELD; \
 	return NULL;	\
 }
+
+#define ERROR_RETURN_NONE(P) \
+	if(P == FALSE)\
+{\
+	CLog::GetInstancePtr()->LogError("Error : File:%s, Func: %s Line:%d", __FILE__ , __FUNCTION__, __LINE__);\
+	ASSERT_FAIELD; \
+	return ;	\
+}
+
+#define ERROR_RETURN_VALUE(P, R) \
+	if(P == FALSE)\
+{\
+	CLog::GetInstancePtr()->LogError("Error : File:%s, Func: %s Line:%d", __FILE__ , __FUNCTION__, __LINE__);\
+	ASSERT_FAIELD; \
+	return R;	\
+}
+
 
 
 #define ERROR_RETURN_CODE(P, Code) \

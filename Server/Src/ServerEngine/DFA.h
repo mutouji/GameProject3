@@ -2,57 +2,46 @@
 #define __D_F_A_H__
 
 class DFANode;
-typedef wchar_t keytype;
-typedef std::map<keytype, DFANode*> DFANodeMap;
-typedef std::set<keytype> DFANodeSet;
+typedef char KeyType;
+typedef std::map<KeyType, DFANode*> DFANodeMap;
+typedef std::set<KeyType> DFANodeSet;
 
 class DFANode
 {
 public:
-	DFANode(keytype key);
+	DFANode(KeyType key);
 
 	~DFANode();
 
-	//加入了个子节点
-	DFANode* addNode(keytype key);
-	bool addNode(const keytype* key, int len);
+	DFANode* AddNode(KeyType key);
 
-	//获取包含 key的子节点
-	DFANode* getNode(keytype key) const;
+	BOOL AddNode(const KeyType* key, INT32 len);
 
-	/**判断是否包含指定的key*/
-	bool hasKeyWord(const keytype* pdata, int len, bool isreturn = true);
+	DFANode* GetNode(KeyType key) const;
 
-	//加载关键字文件
-	bool loadFile(const std::string& filename);
+	BOOL HasKeyWord(const KeyType* pdata, INT32 len, BOOL bReturn = TRUE);
 
-	//判断是否含有关键字 是的话true
-	bool isFileterWord(const std::string& word);
-	bool isFileterWord(const std::wstring& word);
+	BOOL LoadFile(const std::string& filename);
 
-	//把字符串中的所有敏感词都替换成"***"
-	bool filterKeyWords(std::string& word, const std::wstring& dest = L"***");
+	BOOL IsFileterWord(const std::string& word);
+
+	BOOL FilterKeyWords(std::string& word, const std::string& dest = "*");
 
 private:
-	void getKeyPos(INT32& nStart, INT32& nLen);
+	void GetKeyPos(INT32& nStart, INT32& nLen);
 
-	//清空节点数据
-	void clearChildNode();
+	void ClearChildNode();
 
-	//判断子节点是否含有收尾服
-	bool hasEnding();
+	BOOL HasEnding();
 
-	//获取子节点个数
-	inline INT32 getChildCount() const { return (INT32)_childNodeSet.size(); }
+	INT32 GetChildCount() const;
 protected:
-	keytype	_key;
-	INT32 _start;
-	DFANodeMap _childNodeMap;		//所有子节点
-	DFANodeSet _childNodeSet;		//所有子节点字符保存
+	KeyType		m_key;
+	INT32		m_start;
+	DFANodeMap	m_childNodeMap;
 
-	static INT32 s_length;		//记录匹配到的长度
-	static INT32 s_maxlen;		//记录最佳匹配长度
-	static std::wstring s_str;	//静态的用来替换的字符串
+	static INT32 s_length;
+	static INT32 s_maxlen;
 };
 
 #endif

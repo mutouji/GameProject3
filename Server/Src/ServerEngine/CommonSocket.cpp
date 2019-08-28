@@ -84,7 +84,6 @@ BOOL   CommonSocket::InitNetwork()
 		return FALSE;
 	}
 #endif
-
 	return TRUE;
 }
 
@@ -93,7 +92,6 @@ BOOL   CommonSocket::UninitNetwork()
 #if WIN32
 	return (0 == WSACleanup());
 #endif
-
 	return TRUE;
 }
 
@@ -104,6 +102,10 @@ void   CommonSocket::CloseSocket(SOCKET hSocket)
 #else
 	close(hSocket);
 #endif
+
+	hSocket = -1;
+
+	return;
 }
 
 std::string CommonSocket::GetLocalIP()
@@ -139,7 +141,11 @@ void   CommonSocket::ShutDownRecv(SOCKET hSocket)
 
 SOCKET	CommonSocket::CreateSocket( int af, int type, int protocol)
 {
+#ifdef WIN32
+	return WSASocket(af, type, protocol, NULL, 0, WSA_FLAG_OVERLAPPED);
+#else
 	return socket(af, type, protocol);
+#endif
 }
 
 
@@ -172,11 +178,12 @@ BOOL	CommonSocket::ConnectSocket(SOCKET hSocket, const char* pAddr, short sPort)
 	}
 
 	sockaddr_in  svrAddr;
+	memset(&svrAddr, 0, sizeof(svrAddr));
 	svrAddr.sin_family = AF_INET;
 	svrAddr.sin_port   = htons(sPort);
 	inet_pton(AF_INET, pAddr, &svrAddr.sin_addr);
 
-	if(0 == connect(hSocket, (const sockaddr*)&svrAddr, sizeof(sockaddr_in)))
+	if(0 == connect(hSocket, (const sockaddr*)&svrAddr, sizeof(svrAddr)))
 	{
 		return TRUE;
 	}
@@ -210,7 +217,6 @@ BOOL CommonSocket::IsSocketValid(SOCKET hSocket)
 	return TRUE;
 }
 
-
 std::string  CommonSocket::GetLastErrorStr(INT32 nError)
 {
 	std::string strErrorText;
@@ -225,7 +231,6 @@ std::string  CommonSocket::GetLastErrorStr(INT32 nError)
 #else
 	strErrorText = strerror(nError);
 #endif
-
 
 	return strErrorText;
 }
@@ -250,6 +255,34 @@ UINT32  CommonSocket::IpAddrStrToInt(const CHAR* pszIpAddr)
 
 
 #ifdef WIN32
+
+BOOL	CommonSocket::AcceptSocketEx(SOCKET hListenSocket, LPOVERLAPPED lpOverlapped)
+{
+	LPFN_ACCEPTEX lpfnAcceptEx = NULL;
+
+	DWORD dwBytes;
+	GUID GuidAcceptEx = WSAID_ACCEPTEX;
+	if (SOCKET_ERROR == WSAIoctl(hListenSocket, SIO_GET_EXTENSION_FUNCTION_POINTER,
+		&GuidAcceptEx, sizeof(GuidAcceptEx),
+		&lpfnAcceptEx, sizeof(lpfnAcceptEx),
+		&dwBytes, NULL, NULL))
+	{
+		return FALSE;
+	}
+
+	SOCKET hAcceptSocket = CreateSocket();
+
+	if (!lpfnAcceptEx(hListenSocket, hAcceptSocket, NULL, NULL, NULL, NULL, NULL, lpOverlapped))
+	{
+		if (ERROR_IO_PENDING != CommonSocket::GetSocketLastError())
+		{
+			return FALSE;
+		}
+	}
+
+	return TRUE;
+}
+
 BOOL	CommonSocket::ConnectSocketEx(SOCKET hSocket, const char* pAddr, short sPort, LPOVERLAPPED lpOverlapped)
 {
 	LPFN_CONNECTEX lpfnConnectEx = NULL;
@@ -265,13 +298,17 @@ BOOL	CommonSocket::ConnectSocketEx(SOCKET hSocket, const char* pAddr, short sPor
 	}
 
 	sockaddr_in  svrAddr;
+
 	svrAddr.sin_family		= AF_INET;
-	svrAddr.sin_port		= htons(0);
+
+	svrAddr.sin_port = htons(0);
+
 	svrAddr.sin_addr.s_addr = INADDR_ANY;
 
 	CommonSocket::BindSocket(hSocket, (const sockaddr*)&svrAddr, sizeof(sockaddr_in));
 
-	svrAddr.sin_port   = htons(sPort);
+	svrAddr.sin_port = htons(sPort);
+
 	inet_pton(AF_INET, pAddr, &svrAddr.sin_addr);
 
 	if(!lpfnConnectEx(hSocket, (const sockaddr*)&svrAddr, sizeof(sockaddr_in), NULL, NULL, NULL, lpOverlapped))
@@ -312,7 +349,7 @@ BOOL CommonSocket::SetSocketKeepAlive( SOCKET hSocket, int nKeepInterval, int nK
 
 	if (nRet == SOCKET_ERROR)
 	{
-
+		return FALSE;
 	}
 #else
 	setsockopt(hSocket, SOL_TCP, TCP_KEEPIDLE,  (void*)&nKeepIdle, sizeof(nKeepIdle));

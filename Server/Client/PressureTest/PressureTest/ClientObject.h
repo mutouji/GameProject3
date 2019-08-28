@@ -72,7 +72,6 @@ public:
 	BOOL OnMsgObjectChangeNty(UINT32 dwMsgID, CHAR* PacketBuf, INT32 BufLen);
 	BOOL OnMsgObjectRemoveNty(UINT32 dwMsgID, CHAR* PacketBuf, INT32 BufLen);
 
-
 	//*********************消息处理定义结束******************************
 
 	std::vector<UINT64>	m_RoleIDList;
@@ -90,6 +89,8 @@ public:
 	std::string			m_strPassword;
 	std::string			m_strRoleName;
 	UINT32				m_dwCarrerID;
+
+	UINT32              m_SkillID;
 
 	FLOAT               m_x;
 	FLOAT				m_y;

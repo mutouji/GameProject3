@@ -129,13 +129,16 @@ BOOL CommonConvert::StringToPos(char* pStr, FLOAT& x, FLOAT& y, FLOAT& z)
 		return FALSE;
 	}
 
-	char* pPos = strchr(pStr, ',');
+	char szTempBuf[256] = { 0 };
+	strncpy(szTempBuf, pStr, strlen(pStr));
+
+	char* pPos = strchr(szTempBuf, ',');
 	if(pPos == NULL)
 	{
 		return FALSE;
 	}
 	*pPos = 0;
-	x = CommonConvert::StringToFloat(pStr + 1);
+	x = CommonConvert::StringToFloat(szTempBuf + 1);
 
 	char* pOldPos = pPos + 1;
 	pPos = strchr(pPos + 1, ',');
@@ -154,6 +157,54 @@ BOOL CommonConvert::StringToPos(char* pStr, FLOAT& x, FLOAT& y, FLOAT& z)
 	}
 	*pPos = 0;
 	z = CommonConvert::StringToFloat(pOldPos);
+
+	return TRUE;
+}
+
+BOOL CommonConvert::StringToBox(char* pStr, FLOAT& left, FLOAT& top, FLOAT& right, FLOAT& bottom)
+{
+	if (pStr == NULL)
+	{
+		return FALSE;
+	}
+
+	char szTempBuf[256] = { 0 };
+	strncpy(szTempBuf, pStr, strlen(pStr));
+
+	char* pPos = strchr(szTempBuf, ',');
+	if (pPos == NULL)
+	{
+		return FALSE;
+	}
+	*pPos = 0;
+	left = CommonConvert::StringToFloat(szTempBuf + 1);
+
+	char* pOldPos = pPos + 1;
+	pPos = strchr(pPos + 1, ',');
+	if (pPos == NULL)
+	{
+		return FALSE;
+	}
+	*pPos = 0;
+	top = CommonConvert::StringToFloat(pOldPos);
+
+	pOldPos = pPos + 1;
+	pPos = strchr(pPos + 1, ',');
+	if (pPos == NULL)
+	{
+		return FALSE;
+	}
+	*pPos = 0;
+	right = CommonConvert::StringToFloat(pOldPos);
+
+	pOldPos = pPos + 1;
+	pPos = strchr(pPos + 1, ')');
+	if (pPos == NULL)
+	{
+		return FALSE;
+	}
+	*pPos = 0;
+	bottom = CommonConvert::StringToFloat(pOldPos);
 
 	return TRUE;
 }
@@ -229,6 +280,87 @@ BOOL CommonConvert::ReplaceString(std::string& str, const std::string& pattern, 
 	return TRUE;
 }
 
+BOOL CommonConvert::StringToVector(const char* pStrValue, INT32 IntVector[], INT32 nSize, char cDelim)
+{
+	if (pStrValue == NULL)
+	{
+		return FALSE;
+	}
+
+	char szBuf[1024] = { 0 };
+	strncpy(szBuf, pStrValue, 1024);
+
+	char* pBeginPos = szBuf;
+	char* pEndPos = strchr(pBeginPos, cDelim);
+
+	if (pBeginPos == pEndPos)
+	{
+		pBeginPos += 1;
+		pEndPos = strchr(pBeginPos, cDelim);
+	}
+
+	INT32 nIndex = 0;
+	while (pEndPos != NULL)
+	{
+		//*pEndPos = 0;
+		IntVector[nIndex++] = StringToInt(pBeginPos);
+		if (nIndex >= nSize)
+		{
+			return TRUE;
+		}
+
+		pBeginPos = pEndPos + 1;
+		pEndPos = strchr(pBeginPos, cDelim);
+	}
+
+	if (*pBeginPos != 0 && nIndex < nSize)
+	{
+		IntVector[nIndex++] = StringToInt(pBeginPos);
+	}
+
+	return TRUE;
+}
+
+BOOL CommonConvert::StringToVector(const char* pStrValue, FLOAT FloatVector[], INT32 nSize, char cDelim /*= ','*/)
+{
+	if (pStrValue == NULL)
+	{
+		return FALSE;
+	}
+
+	char szBuf[1024] = { 0 };
+	strncpy(szBuf, pStrValue, 1024);
+
+	char* pBeginPos = szBuf;
+	char* pEndPos = strchr(pBeginPos, cDelim);
+
+	if (pBeginPos == pEndPos)
+	{
+		pBeginPos += 1;
+		pEndPos = strchr(pBeginPos, cDelim);
+	}
+
+	INT32 nIndex = 0;
+	while (pEndPos != NULL)
+	{
+		FloatVector[nIndex++] = StringToFloat(pBeginPos);
+		if (nIndex >= nSize)
+		{
+			return TRUE;
+		}
+
+		pBeginPos = pEndPos + 1;
+		pEndPos = strchr(pBeginPos, cDelim);
+	}
+
+	if (*pBeginPos != 0 && nIndex < nSize)
+	{
+		FloatVector[nIndex++] = StringToFloat(pBeginPos);
+	}
+
+	return TRUE;
+}
+
 BOOL CommonConvert::SpliteString(std::string strSrc,  char cDelim, std::vector<std::string>& vtStr)
 {
 	vtStr.clear();
@@ -238,7 +370,7 @@ BOOL CommonConvert::SpliteString(std::string strSrc,  char cDelim, std::vector<s
 	posStart = 0;
 	while(std::string::npos != posEnd)
 	{
-		vtStr.push_back(strSrc.substr(posStart, posEnd - posStart));
+		vtStr.emplace_back(strSrc.substr(posStart, posEnd - posStart));
 
 		posStart = posEnd + 1;
 		posEnd = strSrc.find(cDelim, posStart);
@@ -246,7 +378,7 @@ BOOL CommonConvert::SpliteString(std::string strSrc,  char cDelim, std::vector<s
 
 	if(posStart != strSrc.length())
 	{
-		vtStr.push_back(strSrc.substr(posStart));
+		vtStr.emplace_back(strSrc.substr(posStart));
 	}
 
 	return TRUE;
@@ -333,21 +465,33 @@ BOOL CommonConvert::IsTextUTF8(const char* str, UINT32 length)
 	{
 		chr = *(str + i);
 		if ((chr & 0x80) != 0) // 判断是否ASCII编码,如果不是,说明有可能是UTF-8,ASCII用7位编码,但用一个字节存,最高位标记为0,o0xxxxxxx
-		{ bAllAscii = FALSE; }
+		{
+			bAllAscii = FALSE;
+		}
 		if (nBytes == 0) //如果不是ASCII码,应该是多字节符,计算字节数
 		{
 			if (chr >= 0x80)
 			{
 				if (chr >= 0xFC && chr <= 0xFD)
-				{ nBytes = 6; }
+				{
+					nBytes = 6;
+				}
 				else if (chr >= 0xF8)
-				{ nBytes = 5; }
+				{
+					nBytes = 5;
+				}
 				else if (chr >= 0xF0)
-				{ nBytes = 4; }
+				{
+					nBytes = 4;
+				}
 				else if (chr >= 0xE0)
-				{ nBytes = 3; }
+				{
+					nBytes = 3;
+				}
 				else if (chr >= 0xC0)
-				{ nBytes = 2; }
+				{
+					nBytes = 2;
+				}
 				else
 				{
 					return FALSE;
@@ -377,31 +521,9 @@ BOOL CommonConvert::IsTextUTF8(const char* str, UINT32 length)
 
 UINT32 CommonConvert::VersionToInt( std::string& strVersion )
 {
-	char szBuf[255] = {0};
-	strncpy(szBuf, strVersion.c_str(), 255);
-
-	char* pPos = strchr(szBuf, '.');
-	if(pPos == NULL)
-	{
-		return 0;
-	}
-
-	*pPos = 0;
-	UINT32 nVersion1 = CommonConvert::StringToInt(szBuf);
-
-	char* pOldPos = pPos + 1;
-	pPos = strchr(pPos + 1, '.');
-	if(pPos == NULL)
-	{
-		return 0;
-	}
-	*pPos = 0;
-	UINT32 nVersion2 = CommonConvert::StringToInt(pOldPos);
-
-	pOldPos = pPos + 1;
-	UINT32 nVersion3 = CommonConvert::StringToInt(pOldPos);
-
-	return nVersion1 * 1000000 + nVersion2 * 1000 + nVersion3;
+	INT32 nValue[3] = { 0 };
+	StringToVector(strVersion.c_str(), nValue, 3, '.');
+	return nValue[0] * 1000000 + nValue[1] * 1000 + nValue[2];
 }
 
 INT32 CommonConvert::CountSymbol(char* pStr, char cSymbol )

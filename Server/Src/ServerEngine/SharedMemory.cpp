@@ -3,66 +3,76 @@
 
 ShareObject::ShareObject()
 {
-	m_dwCheckCode = BLOCK_CHECK_CODE;
-	m_State = SMS_USE;
-	m_updatetime = 0;
+	m_CheckCode = BLOCK_CHECK_CODE;
+	m_Status = SMS_USE;
+	m_UpdateTime = 0;
 }
 
-void ShareObject::lock()
+void ShareObject::Lock()
 {
-	m_State = SMS_LOCK;
+	m_Status = SMS_LOCK;
 }
 
 BOOL ShareObject::islock() const
 {
-	return m_State == SMS_LOCK;
+	return m_Status == SMS_LOCK;
 }
 
-void ShareObject::unlock()
+void ShareObject::Unlock()
 {
-	m_updatetime = time(NULL);
-	m_State = SMS_USE;
+	m_UpdateTime = time(NULL);
+	m_Status = SMS_USE;
 }
 
 void ShareObject::useit()
 {
-	m_State = SMS_USE;
+	m_Status = SMS_USE;
 }
 
-void ShareObject::release()
+void ShareObject::Release()
 {
-	m_State = SMS_RELEASE;
+	m_Status = SMS_RELEASE;
 }
 
-void ShareObject::destroy()
+void ShareObject::Destroy()
 {
-	m_State = SMS_DELETE;
+	m_Status = SMS_DELETE;
 }
 
 BOOL ShareObject::isDestroy() const
 {
-	return (m_State == SMS_DELETE);
+	return (m_Status == SMS_DELETE);
 }
 
 BOOL ShareObject::isRelease() const
 {
-	return (m_State == SMS_RELEASE);
+	return (m_Status == SMS_RELEASE);
 }
 
 time_t ShareObject::getLastMotifyTime()
 {
-	return m_updatetime;
+	return m_UpdateTime;
+}
+
+SharedMemoryStatus ShareObject::GetStatus()
+{
+	return m_Status;
+}
+
+UINT32 ShareObject::GetCheckCode()
+{
+	return m_CheckCode;
 }
 
 BOOL ShareObject::isUse() const
 {
-	return m_State != SMS_NONE;
+	return m_Status != SMS_NONE;
 }
 
 void ShareObject::reset()
 {
-	m_State = SMS_NONE;
-	m_updatetime = time(NULL);
+	m_Status = SMS_NONE;
+	m_UpdateTime = time(NULL);
 }
 
 /******************************************************************
@@ -135,25 +145,25 @@ void SharedMemoryBase::InitToMap()
 	{
 		for (UINT32 i = 0; i < m_nCount; ++i)
 		{
-			_SMBlock* ptem = GetSMBbyRawIndex(i);
-			ShareObject* ptemdata = GetObjectByRawindex(i);
-			if (ptem->m_bUse && (ptemdata->m_State == SMS_USE || ptemdata->m_State == SMS_LOCK))
+			_SMBlock* pTempBlock = GetSMBbyRawIndex(i);
+			ShareObject* pTempData = GetObjectByRawindex(i);
+			if (pTempBlock->m_bUse && (pTempData->GetStatus() == SMS_USE || pTempData->GetStatus() == SMS_LOCK))
 			{
-				m_mapUsedSMBlock.insert(std::make_pair(ptemdata, ptem));
+				m_mapUsedSMBlock.insert(std::make_pair(pTempData, pTempBlock));
 			}
 			else
 			{
-				m_mapFreeSMBlock.insert(std::make_pair(i, ptem));
+				m_mapFreeSMBlock.insert(std::make_pair(i, pTempBlock));
 			}
-			m_mapSMBlock.insert(std::make_pair(i, ptem));
+			m_mapSMBlock.insert(std::make_pair(i, pTempBlock));
 		}
 	}
-
 	else
 	{
 		if (m_ShareMemoryPageMapping.size() < 1)
 		{
 			m_nCount = 0;
+
 			return;
 		}
 
@@ -205,11 +215,9 @@ SharedMemoryBase::SharedMemoryBase(const UINT32& nModuleID, UINT32 rawblockSize,
 	m_nPageCount = 0;
 
 	shareMemoryPage firstpage;
-	//firstpage.m_shm = OpenFileMapping(FILE_MAP_READ | FILE_MAP_WRITE, FALSE, pagename.c_str());
 	firstpage.m_shm = CommonFunc::OpenShareMemory(m_nModuleID, 0);
 	if(firstpage.m_shm != NULL)
 	{
-		//firstpage.m_pdata = (CHAR*)MapViewOfFile(firstpage.m_shm, FILE_MAP_READ | FILE_MAP_WRITE, 0, 0, 0);
 		firstpage.m_pdata = (CHAR*)CommonFunc::GetShareMemory(firstpage.m_shm);
 		if(firstpage.m_pdata != NULL)
 		{
@@ -220,23 +228,22 @@ SharedMemoryBase::SharedMemoryBase(const UINT32& nModuleID, UINT32 rawblockSize,
 		}
 		else
 		{
-			//UINT32 dwError = CommonFunc::GetLastError();
-			//printf("---error---:%d", dwError);
+			return;
 		}
 	}
 	else
 	{
 		if (!noCreate)
-		{
+		{ 
 			shareMemoryPage firstpage;
 
-			//firstpage.m_shm = CreateFileMapping(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, size, pagename.c_str());
 			firstpage.m_shm = CommonFunc::CreateShareMemory(m_nModuleID, 0, size);
 			if(firstpage.m_shm == NULL)
 			{
 				ASSERT_FAIELD;
+				return;
 			}
-			//firstpage.m_pdata = (CHAR*)MapViewOfFile(firstpage.m_shm, FILE_MAP_READ | FILE_MAP_WRITE, 0, 0, 0);
+
 			firstpage.m_pdata = (CHAR*)CommonFunc::GetShareMemory(firstpage.m_shm);
 
 			///找到头数据块的头
@@ -310,6 +317,11 @@ const UINT32 SharedMemoryBase::GetRawMemoryBlockSize()
 {
 	ImportOtherPage();
 	return m_nCount;
+}
+
+const INT32 SharedMemoryBase::GetBlockSize()
+{
+	return m_rawblockSize;
 }
 
 void SharedMemoryBase::ProcessCleanDirtyData()
@@ -407,5 +419,10 @@ BOOL SharedMemoryBase::DestoryObject(ShareObject* pobject)
 	m_mapFreeSMBlock.insert(std::make_pair(pblock->m_dwIndex, pblock));
 	return TRUE;
 
+}
+
+SharedMemoryBase::SharedMemoryBase::mapUsedSMBlock& SharedMemoryBase::GetUsedDataList()
+{
+	return m_mapUsedSMBlock;
 }
 

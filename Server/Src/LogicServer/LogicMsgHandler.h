@@ -20,11 +20,10 @@ public:
 
 	BOOL OnUpdate(UINT64 uTick);
 
+	BOOL OnSecondTimer();
+
 public:
-	BOOL ProcessGameCommand(UINT64 u64ID, std::vector<std::string>& vtParam);
-
-
-
+	BOOL ProcessGMCommand(UINT64 u64ID, std::vector<std::string>& vtParam);
 
 public:
 	//*********************消息处理定义开始******************************
@@ -39,12 +38,13 @@ public:
 	BOOL OnMsgRoleLogoutReq(NetPacket* pNetPacket);
 	BOOL OnMsgRoleDisconnect(NetPacket* pNetPacket);
 	BOOL OnMsgMainCopyReq(NetPacket* pNetPacket);
-	BOOL OnMsgAbortCopyReq(NetPacket* pNetPacket);
+	BOOL OnMsgAbortSceneNtf(NetPacket* pNetPacket);
 	BOOL OnMsgBackToCityReq(NetPacket* pNetPacket);
 	BOOL OnMsgRegToLoginAck(NetPacket* pNetPacket);
 	BOOL OnMsgChatMessageReq(NetPacket* pNetPacket);
 	BOOL OnMsgReconnectReq(NetPacket* pNetPacket);
 	BOOL OnMsgTestAddItemReq(NetPacket* pNetPacket);
+	BOOL OnMsgWebCommandReq(NetPacket* pNetPacket);
 	//*********************消息处理定义结束******************************
 };
 

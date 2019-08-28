@@ -21,14 +21,14 @@ BOOL CDBConnection::Init()
 	mysql_library_init( 0, NULL, NULL );
 	mysql_thread_init();
 
-	return true;
+	return TRUE;
 }
 
 BOOL CDBConnection::Uninit()
 {
 	mysql_thread_end();
 	mysql_library_end();
-	return true;
+	return TRUE;
 }
 
 // connect.
@@ -37,64 +37,73 @@ BOOL CDBConnection::Connect(char const* szHost, char const* szUser, char const* 
 	Close();
 
 	m_pMySql = mysql_init( NULL );
-
-	if (0 != mysql_options(m_pMySql, MYSQL_SET_CHARSET_NAME, szCharSet))
+	if (m_pMySql == NULL)
 	{
 		return FALSE;
 	}
 
-	if ( NULL != m_pMySql )
+	if (0 != mysql_options(m_pMySql, MYSQL_SET_CHARSET_NAME, szCharSet))
 	{
-		if ( NULL != mysql_real_connect( m_pMySql, szHost, szUser, szPwd, szDb, nPort, NULL, 0 ) )
-		{
-			m_strHost.assign( szHost );
-			m_strUser.assign( szUser );
-			m_strPwd.assign( szPwd );
-			m_strDB.assign( szDb );
-			m_nPort = nPort;
-
-			mysql_autocommit( m_pMySql, 1 );
-			return true;
-		}
-		else
-		{
-			m_nErrno = mysql_errno( m_pMySql );
-			m_strError = mysql_error( m_pMySql );
-			CLog::GetInstancePtr()->LogError("CDBConnection::Connect Failed [mysql_real_connect], ErrorNo:%d, ErrorMsg:%s", m_nErrno, m_strError.c_str());
-			return false;
-		}
+		mysql_close(m_pMySql);
+		m_pMySql = NULL;
+		return FALSE;
 	}
 
-	return false;
+	if (NULL == mysql_real_connect(m_pMySql, szHost, szUser, szPwd, szDb, nPort, NULL, 0))
+	{
+		m_nErrno = mysql_errno(m_pMySql);
+		m_strError = mysql_error(m_pMySql);
+		CLog::GetInstancePtr()->LogError("CDBConnection::Connect Failed [mysql_real_connect], ErrorNo:%d, ErrorMsg:%s", m_nErrno, m_strError.c_str());
+		mysql_close(m_pMySql);
+		m_pMySql = NULL;
+		return FALSE;
+	}
+
+	m_strHost.assign(szHost);
+	m_strUser.assign(szUser);
+	m_strPwd.assign(szPwd);
+	m_strDB.assign(szDb);
+	m_nPort = nPort;
+	m_strCharSet.assign(szCharSet);
+
+	return FALSE;
 }
 
-bool CDBConnection::Reconnect( void )
+BOOL CDBConnection::Reconnect( void )
 {
 	if ( NULL != m_pMySql && 0 == mysql_ping( m_pMySql ) )
 	{
-		return true;
-	}
-	else
-	{
-		Close();
-		m_pMySql = mysql_init( NULL );
-		if ( NULL != m_pMySql )
-		{
-			if ( NULL != mysql_real_connect( m_pMySql, m_strHost.c_str(), m_strUser.c_str(), m_strPwd.c_str(), m_strDB.c_str(), m_nPort, NULL, 0 ) )
-			{
-				return true;
-			}
-			else
-			{
-				m_nErrno = mysql_errno( m_pMySql );
-				m_strError = mysql_error( m_pMySql );
-				CLog::GetInstancePtr()->LogError("CDBConnection::Connect Failed [mysql_real_connect], ErrorNo:%d, ErrorMsg:%s", m_nErrno, m_strError.c_str());
-				return false;
-			}
-		}
+		return TRUE;
 	}
 
-	return false;
+	Close();
+	m_pMySql = mysql_init(NULL);
+	if (m_pMySql == NULL)
+	{
+		return FALSE;
+	}
+
+	if (0 != mysql_options(m_pMySql, MYSQL_SET_CHARSET_NAME, m_strCharSet.c_str()))
+	{
+		m_nErrno = mysql_errno(m_pMySql);
+		m_strError = mysql_error(m_pMySql);
+		CLog::GetInstancePtr()->LogError("CDBConnection::Connect Failed [mysql_options], ErrorNo:%d, ErrorMsg:%s", m_nErrno, m_strError.c_str());
+		mysql_close(m_pMySql);
+		m_pMySql = NULL;
+		return FALSE;
+	}
+
+	if (NULL == mysql_real_connect(m_pMySql, m_strHost.c_str(), m_strUser.c_str(), m_strPwd.c_str(), m_strDB.c_str(), m_nPort, NULL, 0))
+	{
+		m_nErrno = mysql_errno(m_pMySql);
+		m_strError = mysql_error(m_pMySql);
+		CLog::GetInstancePtr()->LogError("CDBConnection::Connect Failed [mysql_real_connect], ErrorNo:%d, ErrorMsg:%s", m_nErrno, m_strError.c_str());
+		mysql_close(m_pMySql);
+		m_pMySql = NULL;
+		return FALSE;
+	}
+
+	return TRUE;
 }
 
 // close.
@@ -106,6 +115,8 @@ void CDBConnection::Close( void )
 
 		m_pMySql = NULL;
 	}
+
+	return;
 }
 
 BOOL CDBConnection::Execute(CDBStoredProcedure* pDBStoredProcedure)
@@ -121,21 +132,17 @@ BOOL CDBConnection::Execute(CDBStoredProcedure* pDBStoredProcedure)
 	{
 		m_nErrno = mysql_errno( m_pMySql );
 		m_strError = mysql_error( m_pMySql );
-		CLog::GetInstancePtr()->LogError("CDBConnection::Execute Failed [mysql_stmt_init], ErrorNo:%d, ErrorMsg:%s", m_nErrno, m_strError.c_str());
+		CLog::GetInstancePtr()->LogError("CDBConnection::Execute Failed [mysql_stmt_init], ErrorNo:%d, ErrorMsg:%s, Sql:%s", m_nErrno, m_strError.c_str(), pDBStoredProcedure->m_strSql.c_str());
 		return FALSE;
 	}
 
 	if(0 != mysql_stmt_prepare(pMySqlStmt, pDBStoredProcedure->m_strSql.c_str(), (unsigned long)pDBStoredProcedure->m_strSql.size()))
 	{
 		m_nErrno = mysql_errno( m_pMySql );
-
 		m_strError = mysql_error( m_pMySql );
-
 		mysql_stmt_close( pMySqlStmt );
-
 		pMySqlStmt = NULL;
-
-		CLog::GetInstancePtr()->LogError("CDBConnection::Execute Failed [mysql_stmt_prepare], ErrorNo:%d, ErrorMsg:%s", m_nErrno, m_strError.c_str());
+		CLog::GetInstancePtr()->LogError("CDBConnection::Execute Failed [mysql_stmt_prepare], ErrorNo:%d, ErrorMsg:%s, Sql:%s", m_nErrno, m_strError.c_str(), pDBStoredProcedure->m_strSql.c_str());
 
 		return FALSE;
 	}
@@ -149,7 +156,7 @@ BOOL CDBConnection::Execute(CDBStoredProcedure* pDBStoredProcedure)
 		m_strError = mysql_error( m_pMySql );
 		mysql_stmt_close( pMySqlStmt );
 		pMySqlStmt = NULL;
-		CLog::GetInstancePtr()->LogError("CDBConnection::Execute Failed [mysql_stmt_param_count], ErrorNo:%d, ErrorMsg:%s", m_nErrno, m_strError.c_str());
+		CLog::GetInstancePtr()->LogError("CDBConnection::Execute Failed [mysql_stmt_param_count], ErrorNo:%d, ErrorMsg:%s, Sql:%s", m_nErrno, m_strError.c_str(), pDBStoredProcedure->m_strSql.c_str());
 		return FALSE;
 	}
 
@@ -162,7 +169,7 @@ BOOL CDBConnection::Execute(CDBStoredProcedure* pDBStoredProcedure)
 			mysql_stmt_close( pMySqlStmt );
 			pMySqlStmt = NULL;
 			ASSERT_FAIELD;
-			CLog::GetInstancePtr()->LogError("CDBConnection::Execute Failed [mysql_stmt_bind_param], ErrorNo:%d, ErrorMsg:%s", m_nErrno, m_strError.c_str());
+			CLog::GetInstancePtr()->LogError("CDBConnection::Execute Failed [mysql_stmt_bind_param], ErrorNo:%d, ErrorMsg:%s, Sql:%s", m_nErrno, m_strError.c_str(), pDBStoredProcedure->m_strSql.c_str());
 			return FALSE;
 		}
 	}
@@ -181,7 +188,7 @@ BOOL CDBConnection::Execute(CDBStoredProcedure* pDBStoredProcedure)
 		m_strError = mysql_error( m_pMySql );
 		mysql_stmt_close( pMySqlStmt );
 		pMySqlStmt = NULL;
-		CLog::GetInstancePtr()->LogError("CDBConnection::Execute Failed [mysql_stmt_execute], ErrorNo:%d, ErrorMsg:%s", m_nErrno, m_strError.c_str());
+		CLog::GetInstancePtr()->LogError("CDBConnection::Execute Failed [mysql_stmt_execute], ErrorNo:%d, ErrorMsg:%s, Sql:%s", m_nErrno, m_strError.c_str(), pDBStoredProcedure->m_strSql.c_str());
 		ASSERT_FAIELD;
 		return FALSE;
 	}
@@ -337,14 +344,14 @@ BOOL CDBConnection::Query( std::string sql )
 	return TRUE;
 }
 
-bool CDBConnection::Ping()
+BOOL CDBConnection::Ping()
 {
 	if (mysql_ping(m_pMySql) == 0)
 	{
-		return true;
+		return TRUE;
 	}
 
-	return false;
+	return FALSE;
 }
 
 int CDBConnection::GetError( void ) const
@@ -357,7 +364,7 @@ BOOL CDBConnection::Execute( std::string sql )
 	return TRUE;
 }
 
-BOOL CDBConnection::SetConnectParam( char const* szHost, char const* szUser, char const* szPwd, char const* szDb, int nPort )
+BOOL CDBConnection::SetConnectParam( char const* szHost, char const* szUser, char const* szPwd, char const* szDb, int nPort, char const* szCharSet)
 {
 	m_strHost.assign( szHost );
 
@@ -368,6 +375,8 @@ BOOL CDBConnection::SetConnectParam( char const* szHost, char const* szUser, cha
 	m_strDB.assign( szDb );
 
 	m_nPort = nPort;
+
+	m_strCharSet.assign(szCharSet);
 
 	return TRUE;
 }

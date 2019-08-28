@@ -13,7 +13,7 @@ int main(int argc, char* argv[])
 	UINT32 dwSvrID = cmdLine.GetIntValue("id");
 	UINT32 dwPort = cmdLine.GetIntValue("port");
 
-	if((dwSvrID <= 0) || (dwPort <= 0))
+	if((dwSvrID == 0) || (dwPort == 0))
 	{
 		printf("Error Invalid ServerID:%d or Invalid Port:%d!!!", dwSvrID, dwPort);
 		getchar();
@@ -21,6 +21,9 @@ int main(int argc, char* argv[])
 	}
 
 	SetCrashReport("GameServer");
+
+	//设置被监视索引，用于和监控程通信
+	CGameService::GetInstancePtr()->SetWatchIndex(cmdLine.GetIntValue("windex"));
 
 	if (!CGameService::GetInstancePtr()->Init(dwSvrID, dwPort))
 	{

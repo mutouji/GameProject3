@@ -10,5 +10,15 @@ struct BattleRecord
 	UINT32          m_dwDamage;		//总伤害值
 };
 
+enum EChangeType
+{
+	ECT_EQUIP = 1,//装备改变
+	ECT_MOUNT = 2,//坐骑改变
+	ECT_LEVEL = 3,//等级
+	ECT_PARTNER = 4,//伙伴
+	ECT_PET = 5,//宠物
+};
+
+
 
 #endif //__SERVER_STRUCT_H__

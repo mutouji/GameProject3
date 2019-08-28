@@ -71,6 +71,9 @@ public:
 	bool open(const char* host, const char* user, const char* passwd, const char* db,
 	          unsigned int port, const char* charSetName = "utf8", unsigned long client_flag = 0);
 
+	bool setOpenParam(const char* host, const char* user, const char* passwd, const char* db,
+	                  unsigned int port, const char* charSetName = "utf8", unsigned long client_flag = 0);
+
 	void close();
 
 	/* 返回句柄 */
@@ -115,12 +118,12 @@ public:
 	const char* getHostInfo();
 
 	/* 主要功能:得到服务器信息 */
-	const char* getServerInfo();
+	const char* GetServerInfo();
 
 	const char* GetErrorMsg();
 
 	/*主要功能:得到服务器版本信息*/
-	const unsigned long  getServerVersion();
+	const unsigned long  GetDBVersion();
 
 	/*主要功能:得到 当前连接的默认字符集*/
 	const char*   getCharacterSetName();
@@ -131,20 +134,31 @@ public:
 	/* 删除制定的数据库*/
 	int dropDB(const char* name);
 
+	/*修改当前的数据库*/
+	bool changeCurDB(const char* name);
+
+	INT64 getAutoIncrementID(const char* szTableName, const char* szDBName);
+
+	bool  setAutoIncrementID(INT64 nId, const char* szTableName, const char* szDBName);
+
 private:
 	CppMySQL3DB(const CppMySQL3DB& db);
 	CppMySQL3DB& operator=(const CppMySQL3DB& db);
 
 private:
 	/* msyql 连接句柄 */
-	MYSQL* _db_ptr;
-	CppMySQLQuery _db_query;
+	MYSQL* m_pMySqlDB;
+	CppMySQLQuery m_dbQuery;
+
+	int          m_nErrno;
+	std::string  m_strError;
 
 
 	std::string  m_strHost;
 	std::string  m_strUser;
 	std::string  m_strPwd;
 	std::string  m_strDB;
+	std::string  m_strCharSet; //字符集
 	int          m_nPort;
 };
 

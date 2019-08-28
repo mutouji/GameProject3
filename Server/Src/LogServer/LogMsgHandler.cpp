@@ -24,7 +24,11 @@ BOOL CLogMsgHandler::Init(UINT32 dwReserved)
 	std::string strPwd = CConfigFile::GetInstancePtr()->GetStringValue("mysql_game_svr_pwd");
 	std::string strDb = CConfigFile::GetInstancePtr()->GetStringValue("mysql_game_svr_db_name");
 	BOOL bRet = m_DBConnection.open(strHost.c_str(), strUser.c_str(), strPwd.c_str(), strDb.c_str(), nPort);
-	ERROR_RETURN_FALSE(bRet);
+	if(!bRet)
+	{
+		CLog::GetInstancePtr()->LogError("CLogMsgHandler::Init Error: Can not open mysql database! Reason:%s", m_DBConnection.GetErrorMsg());
+		return FALSE;
+	}
 
 	m_nLastWriteTime = 0;
 
@@ -45,7 +49,7 @@ BOOL CLogMsgHandler::OnUpdate(UINT64 uTick)
 		m_nLastWriteTime = uTick;
 	}
 
-	if (m_nWriteCount <= 0)
+	if (m_nWriteCount == 0)
 	{
 		return TRUE;
 	}

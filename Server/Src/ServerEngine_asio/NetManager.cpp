@@ -19,7 +19,7 @@ CNetManager::~CNetManager(void)
 {
 }
 
-BOOL CNetManager::Start(UINT16 nPortNum, UINT32 nMaxConn, IDataHandler* pBufferHandler )
+BOOL CNetManager::Start(UINT16 nPortNum, UINT32 nMaxConn, IDataHandler* pBufferHandler , std::string &strListenIp)
 {
 	if(pBufferHandler == NULL)
 	{
@@ -32,7 +32,12 @@ BOOL CNetManager::Start(UINT16 nPortNum, UINT32 nMaxConn, IDataHandler* pBufferH
 
 	CConnectionMgr::GetInstancePtr()->InitConnectionList(nMaxConn, m_IoService);
 
-	boost::asio::ip::tcp::endpoint ep(boost::asio::ip::address_v4::from_string("0.0.0.0"), nPortNum);
+	if (strListenIp.empty() || strListenIp.length() < 4)
+	{
+		strListenIp = "0.0.0.0";
+	}
+	
+	boost::asio::ip::tcp::endpoint ep(boost::asio::ip::address_v4::from_string(strListenIp), nPortNum);
 
 	m_pAcceptor = new boost::asio::ip::tcp::acceptor(m_IoService, ep);
 
@@ -60,6 +65,7 @@ BOOL CNetManager::WaitForConnect()
 	CConnection* pConnection = CConnectionMgr::GetInstancePtr()->CreateConnection();
 	if(pConnection == NULL)
 	{
+		ASSERT_FAIELD;
 		return FALSE;
 	}
 
@@ -68,7 +74,14 @@ BOOL CNetManager::WaitForConnect()
 	return TRUE;
 }
 
-CConnection* CNetManager::ConnectToOtherSvr( std::string strIpAddr, UINT16 sPort )
+CConnection* CNetManager::ConnectTo_Sync(std::string strIpAddr, UINT16 sPort)
+{
+	ASSERT_FAIELD;
+
+	return NULL;
+}
+
+CConnection* CNetManager::ConnectTo_Async( std::string strIpAddr, UINT16 sPort )
 {
 	//boost::asio::ip::tcp::resolver resolver(m_IoService);
 	//boost::asio::ip::tcp::resolver::query query(serverip.c_str(), Helper::IntToString(portnumber));
@@ -96,20 +109,35 @@ CConnection* CNetManager::ConnectToOtherSvr( std::string strIpAddr, UINT16 sPort
 
 void CNetManager::HandleConnect(CConnection* pConnection, const boost::system::error_code& e)
 {
-	m_pBufferHandler->OnNewConnect(pConnection);
+	if (!e)
+	{
+		m_pBufferHandler->OnNewConnect(pConnection);
 
-	pConnection->DoReceive();
+		pConnection->DoReceive();
+	}
+	else
+	{
+		pConnection->Close();
+	}
 
 	return ;
 }
 
 void CNetManager::HandleAccept(CConnection* pConnection, const boost::system::error_code& e)
 {
-	m_pBufferHandler->OnNewConnect(pConnection);
+	if (!e)
+	{
+		m_pBufferHandler->OnNewConnect(pConnection);
 
-	pConnection->DoReceive();
+		pConnection->DoReceive();
 
-	WaitForConnect();
+		WaitForConnect();
+	}
+	else
+	{
+		pConnection->Close();
+		//这里是监听出错，需要处理．
+	}
 
 	return ;
 }
@@ -133,6 +161,7 @@ BOOL	CNetManager::SendMsgBufByConnID(UINT32 dwConnID, IDataBuffer* pBuffer)
 	pBuffer->AddRef();
 	if (pConn->SendBuffer(pBuffer))
 	{
+		PostSendOperation(pConn);
 		return TRUE;
 	}
 
@@ -142,7 +171,11 @@ BOOL	CNetManager::SendMsgBufByConnID(UINT32 dwConnID, IDataBuffer* pBuffer)
 
 BOOL CNetManager::SendMessageByConnID(UINT32 dwConnID, UINT32 dwMsgID, UINT64 u64TargetID, UINT32 dwUserData, const char* pData, UINT32 dwLen)
 {
-	ERROR_RETURN_FALSE(dwConnID != 0);
+	if (dwConnID <= 0)
+	{
+		return FALSE;
+	}
+
 	CConnection* pConn = CConnectionMgr::GetInstancePtr()->GetConnectionByConnID(dwConnID);
 	if (pConn == NULL)
 	{
@@ -156,7 +189,7 @@ BOOL CNetManager::SendMessageByConnID(UINT32 dwConnID, UINT32 dwMsgID, UINT64 u6
 		return FALSE;
 	}
 
-	IDataBuffer* pDataBuffer = CBufferManagerAll::GetInstancePtr()->AllocDataBuff(dwLen + sizeof(PacketHeader));
+	IDataBuffer* pDataBuffer = CBufferAllocator::GetInstancePtr()->AllocDataBuff(dwLen + sizeof(PacketHeader));
 	ERROR_RETURN_FALSE(pDataBuffer != NULL);
 
 	PacketHeader* pHeader = (PacketHeader*)pDataBuffer->GetBuffer();
@@ -173,8 +206,26 @@ BOOL CNetManager::SendMessageByConnID(UINT32 dwConnID, UINT32 dwMsgID, UINT64 u6
 
 	if (pConn->SendBuffer(pDataBuffer))
 	{
+		PostSendOperation(pConn);
 		return TRUE;
 	}
 
 	return FALSE;
+}
+
+
+BOOL CNetManager::PostSendOperation(CConnection* pConnection)
+{
+	if (pConnection == NULL)
+	{
+		ASSERT_FAIELD;
+		return FALSE;
+	}
+
+	if (!pConnection->m_IsSending)
+	{
+		m_IoService.post(boost::bind(&CConnection::DoSend, pConnection));
+	}
+
+	return TRUE;
 }

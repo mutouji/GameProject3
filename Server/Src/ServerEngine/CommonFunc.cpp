@@ -29,16 +29,15 @@ std::string CommonFunc::GetCurrentWorkDir()
 
 std::string CommonFunc::GetCurrentExeDir()
 {
-	char szPath[1024] = {0}, szLink[1024] = { 0 };
+	char szPath[1024] = {0};
 #ifdef WIN32
-	ZeroMemory(szPath, 1024);
 	GetModuleFileName(NULL, szPath, 1024);
 	char* p = strrchr(szPath, '\\');
-	*p = 0;
 #else
-	snprintf(szLink, 1024, "/proc/%d/exe", getpid());/////////////
-	readlink(szLink, szPath, sizeof(szPath));//////////////
+	readlink("/proc/self/exe", szPath, sizeof(szPath));
+	char* p = strrchr(szPath, '/');
 #endif
+	*p = 0;
 	return std::string(szPath);
 }
 
@@ -283,12 +282,8 @@ VOID CommonFunc::Sleep(UINT32 dwMilliseconds)
 	struct timespec req;
 	req.tv_sec = 0;
 	req.tv_nsec = dwMilliseconds * 1000000;
-	if (-1 == nanosleep(&req, NULL))
-	{
-		return;
-	}
+	nanosleep(&req, NULL);
 #endif
-
 	return;
 }
 
@@ -323,11 +318,11 @@ INT32 CommonFunc::GetRandNum(INT32 nType)
 
 	static INT32 nRandIndex[100] = {0};
 	static INT32 vtGlobalRankValue[10000];
-	static BOOL  bInit = false;
+	static BOOL  bInit = FALSE;
 
-	if(bInit == false)
+	if(bInit == FALSE)
 	{
-		bInit = true;
+		bInit = TRUE;
 		INT32  nTempIndex;
 		UINT32 nTemp;
 		for(int j = 0; j < 10000; j++ )
@@ -513,4 +508,9 @@ BOOL CommonFunc::KillProcess(UINT64 dwPid)
 	kill(dwPid, SIGKILL);
 #endif
 	return TRUE;
+}
+
+INT32 CommonFunc::Min(INT32 nValue1, INT32 nValue2)
+{
+	return (nValue1 < nValue2) ? nValue1 : nValue2;
 }

@@ -2,7 +2,7 @@
 #include "GemModule.h"
 #include "DataPool.h"
 #include "GlobalDataMgr.h"
-#include "../ConfigData/ConfigData.h"
+#include "../StaticData/StaticData.h"
 #include "PlayerObject.h"
 #include "../Message/Msg_ID.pb.h"
 #include "../Message/Msg_RetCode.pb.h"
@@ -37,7 +37,7 @@ BOOL CGemModule::OnDestroy()
 {
 	for(auto itor = m_mapGemData.begin(); itor != m_mapGemData.end(); itor++)
 	{
-		itor->second->release();
+		itor->second->Release();
 	}
 
 	m_mapGemData.clear();
@@ -66,7 +66,7 @@ BOOL CGemModule::ReadFromDBLoginData(DBRoleLoginAck& Ack)
 	for(int i = 0; i < GemData.gemlist_size(); i++)
 	{
 		const DBGemItem& ItemData = GemData.gemlist(i);
-		GemDataObject* pObject = g_pGemDataObjectPool->NewObject(FALSE);
+		GemDataObject* pObject = DataPool::CreateObject<GemDataObject>(ESD_GEM, FALSE);
 		pObject->m_uGuid = ItemData.guid();
 		pObject->m_uRoleID = ItemData.roleid();
 		pObject->m_GemID = ItemData.gemid();
@@ -79,7 +79,7 @@ BOOL CGemModule::ReadFromDBLoginData(DBRoleLoginAck& Ack)
 		m_mapGemData.insert(std::make_pair(pObject->m_uGuid, pObject));
 		if(pObject->m_EquipPos > 0)
 		{
-			StGemInfo* pInfo = CConfigData::GetInstancePtr()->GetGemInfo(pObject->m_GemID);
+			StGemInfo* pInfo = CStaticData::GetInstancePtr()->GetGemInfo(pObject->m_GemID);
 			UINT32 dwTargetPos = (pObject->m_EquipPos - 1) * 5 + pInfo->dwPos - 1 ;
 			m_vtDressGem[dwTargetPos] = pObject;
 		}
@@ -109,8 +109,8 @@ BOOL CGemModule::SaveToClientLoginData(RoleLoginAck& Ack)
 
 UINT64 CGemModule::AddGem(UINT32 dwGemID)
 {
-	GemDataObject* pObject = g_pGemDataObjectPool->NewObject(TRUE);
-	pObject->lock();
+	GemDataObject* pObject = DataPool::CreateObject<GemDataObject>(ESD_GEM, TRUE);
+	pObject->Lock();
 	pObject->m_GemID = dwGemID;
 	pObject->m_uRoleID = m_pOwnPlayer->GetObjectID();
 	pObject->m_uGuid   = CGlobalDataManager::GetInstancePtr()->MakeNewGuid();
@@ -119,7 +119,7 @@ UINT64 CGemModule::AddGem(UINT32 dwGemID)
 	pObject->m_StarExp = 0;
 	pObject->m_StarLevel = 0;
 	pObject->m_EquipPos = 0;
-	pObject->unlock();
+	pObject->Unlock();
 
 	m_mapGemData.insert(std::make_pair(pObject->m_uGuid, pObject));
 
@@ -188,7 +188,7 @@ UINT32 CGemModule::UnDressGem(UINT64 uGuid)
 		return MRC_UNKNOW_ERROR;
 	}
 
-	StGemInfo* pInfo = CConfigData::GetInstancePtr()->GetGemInfo(pObject->m_GemID);
+	StGemInfo* pInfo = CStaticData::GetInstancePtr()->GetGemInfo(pObject->m_GemID);
 	if (pInfo == NULL)
 	{
 		return MRC_UNKNOW_ERROR;
@@ -202,9 +202,9 @@ UINT32 CGemModule::UnDressGem(UINT64 uGuid)
 	}
 
 	m_vtDressGem[dwTargetPos] = NULL;
-	pObject->lock();
+	pObject->Lock();
 	pObject->m_EquipPos = 0;
-	pObject->unlock();
+	pObject->Unlock();
 	m_setChange.insert(pObject->m_uGuid);
 
 	CBagModule* pBagModule = (CBagModule*)m_pOwnPlayer->GetModuleByType(MT_BAG);
@@ -217,35 +217,35 @@ UINT32 CGemModule::UnDressGem(UINT64 uGuid)
 	return MRC_SUCCESSED;
 }
 
-BOOL CGemModule::OnMsgDressGemReq(NetPacket* pNetPacket)
+BOOL CGemModule::OnMsgSetupGemReq(NetPacket* pNetPacket)
 {
-	DressGemReq Req;
+	SetupGemReq Req;
 	Req.ParsePartialFromArray(pNetPacket->m_pDataBuffer->GetData(), pNetPacket->m_pDataBuffer->GetBodyLenth());
 	PacketHeader* pHeader = (PacketHeader*)pNetPacket->m_pDataBuffer->GetBuffer();
 
 	UINT32 nRetCode = DressGem(Req.gemguid(), Req.bagguid(), Req.targetpos());
 	if (nRetCode != MRC_SUCCESSED)
 	{
-		DressGemAck Ack;
+		SetupGemAck Ack;
 		Ack.set_retcode(nRetCode);
-		m_pOwnPlayer->SendMsgProtoBuf(MSG_DRESS_GEM_ACK, Ack);
+		m_pOwnPlayer->SendMsgProtoBuf(MSG_SETUP_GEM_ACK, Ack);
 	}
 
 	return TRUE;
 }
 
-BOOL CGemModule::OnMsgUnDressGemReq(NetPacket* pNetPacket)
+BOOL CGemModule::OnMsgUnsetGemReq(NetPacket* pNetPacket)
 {
-	UnDressGemReq Req;
+	UnsetGemReq Req;
 	Req.ParsePartialFromArray(pNetPacket->m_pDataBuffer->GetData(), pNetPacket->m_pDataBuffer->GetBodyLenth());
 	PacketHeader* pHeader = (PacketHeader*)pNetPacket->m_pDataBuffer->GetBuffer();
 
 	UINT32 nRetCode = UnDressGem(Req.gemguid());
 	if (nRetCode != MRC_SUCCESSED)
 	{
-		UnDressEquipAck Ack;
+		UnsetEquipAck Ack;
 		Ack.set_retcode(nRetCode);
-		m_pOwnPlayer->SendMsgProtoBuf(MSG_UNDRESS_GEM_ACK, Ack);
+		m_pOwnPlayer->SendMsgProtoBuf(MSG_UNSET_GEM_ACK, Ack);
 	}
 
 	return TRUE;
@@ -264,7 +264,7 @@ UINT32 CGemModule::DressGem(UINT64 uGuid, UINT64 uBagGuid, INT32 EquipPos)
 		return MRC_UNKNOW_ERROR;
 	}
 
-	StGemInfo* pInfo = CConfigData::GetInstancePtr()->GetGemInfo(pObject->m_GemID);
+	StGemInfo* pInfo = CStaticData::GetInstancePtr()->GetGemInfo(pObject->m_GemID);
 	if (pInfo == NULL)
 	{
 		return MRC_UNKNOW_ERROR;
@@ -279,9 +279,9 @@ UINT32 CGemModule::DressGem(UINT64 uGuid, UINT64 uBagGuid, INT32 EquipPos)
 	UINT32 dwTargetPos = (EquipPos - 1) * 5 + pInfo->dwPos - 1;
 	if (m_vtDressGem[dwTargetPos] != NULL)
 	{
-		m_vtDressGem[dwTargetPos]->lock();
+		m_vtDressGem[dwTargetPos]->Lock();
 		m_vtDressGem[dwTargetPos]->m_EquipPos = 0;
-		m_vtDressGem[dwTargetPos]->unlock();
+		m_vtDressGem[dwTargetPos]->Unlock();
 		m_setChange.insert(m_vtDressGem[dwTargetPos]->m_uGuid);
 		pBagModule->SetBagItem(uBagGuid, m_vtDressGem[dwTargetPos]->m_uGuid, m_vtDressGem[dwTargetPos]->m_GemID, 1);
 	}
@@ -290,9 +290,9 @@ UINT32 CGemModule::DressGem(UINT64 uGuid, UINT64 uBagGuid, INT32 EquipPos)
 		pBagModule->RemoveItem(uBagGuid);
 	}
 
-	pObject->lock();
+	pObject->Lock();
 	pObject->m_EquipPos = EquipPos;
-	pObject->unlock();
+	pObject->Unlock();
 	m_vtDressGem[dwTargetPos] = pObject;
 	m_setChange.insert(pObject->m_uGuid);
 
@@ -312,7 +312,7 @@ BOOL CGemModule::CalcFightValue(INT32 nValue[PROPERTY_NUM], INT32 nPercent[PROPE
 		}
 
 		GemDataObject* pObject = m_vtDressGem[i];
-		StGemInfo* pInfo = CConfigData::GetInstancePtr()->GetGemInfo(pObject->m_GemID);
+		StGemInfo* pInfo = CStaticData::GetInstancePtr()->GetGemInfo(pObject->m_GemID);
 		ERROR_RETURN_FALSE(pInfo != NULL);
 		if(pObject->m_StrengthLvl >= 1)
 		{
@@ -330,8 +330,8 @@ BOOL CGemModule::DispatchPacket(NetPacket* pNetPacket)
 {
 	switch (pNetPacket->m_dwMsgID)
 	{
-			PROCESS_MESSAGE_ITEM(MSG_DRESS_GEM_REQ,		OnMsgDressGemReq);
-			PROCESS_MESSAGE_ITEM(MSG_UNDRESS_GEM_REQ,	OnMsgUnDressGemReq);
+			PROCESS_MESSAGE_ITEM(MSG_SETUP_GEM_REQ,		OnMsgSetupGemReq);
+			PROCESS_MESSAGE_ITEM(MSG_UNSET_GEM_REQ,		OnMsgUnsetGemReq);
 	}
 
 	return FALSE;

@@ -40,14 +40,14 @@ UINT32			GetCurProcessID();
 VOID			Sleep(UINT32 dwMilliseconds);
 
 UINT32			GetFreePhysMemory();
-
+ 
 INT32           GetRandNum(INT32 nType);
 
 UINT32			GetLastError();
 
-// HANDLE          CreateShareMemory(std::string strName, INT32 nSize);
+// HANDLE       CreateShareMemory(std::string strName, INT32 nSize);
 //
-// HANDLE			OpenShareMemory(std::string strName);
+// HANDLE		OpenShareMemory(std::string strName);
 
 HANDLE          CreateShareMemory(UINT32 dwModuleID, INT32 nPage, INT32 nSize);
 
@@ -62,6 +62,8 @@ BOOL			CloseShareMemory(HANDLE hShm);
 BOOL			DbgTrace(char* format, ...);
 
 BOOL			KillProcess(UINT64 dwPid);
+
+INT32			Min(INT32 nValue1, INT32 nValue2);
 }
 
 

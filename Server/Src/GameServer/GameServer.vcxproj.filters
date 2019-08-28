@@ -19,11 +19,11 @@
     <Filter Include="SceneObject">
       <UniqueIdentifier>{5f4e542f-0878-4371-b9fd-ea2b921e1e64}</UniqueIdentifier>
     </Filter>
-    <Filter Include="ConfigData">
-      <UniqueIdentifier>{0e358b5d-7aad-44d3-ae3b-39bf152f4c06}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Proto">
       <UniqueIdentifier>{c6b463a4-bbfd-4a98-96c1-6c3b427b8898}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="StaticData">
+      <UniqueIdentifier>{0e358b5d-7aad-44d3-ae3b-39bf152f4c06}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -57,14 +57,8 @@
     <ClCompile Include="SceneLogic\SceneLogic_City.cpp">
       <Filter>Scenelogic</Filter>
     </ClCompile>
-    <ClCompile Include="SceneLogic\BattleResult.cpp">
-      <Filter>Scenelogic</Filter>
-    </ClCompile>
     <ClCompile Include="SceneXmlMgr.cpp">
       <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\ConfigData\ConfigData.cpp">
-      <Filter>ConfigData</Filter>
     </ClCompile>
     <ClCompile Include="..\Message\Msg_Move.pb.cc">
       <Filter>Proto</Filter>
@@ -90,9 +84,6 @@
     <ClCompile Include="GameObject\SkillObject.cpp">
       <Filter>SceneObject</Filter>
     </ClCompile>
-    <ClCompile Include="..\ConfigData\CppSQLite3.cpp">
-      <Filter>ConfigData</Filter>
-    </ClCompile>
     <ClCompile Include="GameObject\MapObject.cpp">
       <Filter>SceneObject</Filter>
     </ClCompile>
@@ -101,6 +92,21 @@
     </ClCompile>
     <ClCompile Include="GridManager.cpp">
       <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="..\StaticData\StaticData.cpp">
+      <Filter>StaticData</Filter>
+    </ClCompile>
+    <ClCompile Include="..\StaticData\CppSQLite3.cpp">
+      <Filter>StaticData</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Message\Msg_LoginCltData.pb.cc">
+      <Filter>Proto</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneLogic\SceneLogic_Team.cpp">
+      <Filter>Scenelogic</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneLogic\WinCondition.cpp">
+      <Filter>Scenelogic</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -131,17 +137,8 @@
     <ClInclude Include="SceneLogic\SceneLogic_City.h">
       <Filter>Scenelogic</Filter>
     </ClInclude>
-    <ClInclude Include="SceneLogic\BattleResult.h">
-      <Filter>Scenelogic</Filter>
-    </ClInclude>
     <ClInclude Include="SceneXmlMgr.h">
       <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="..\ConfigData\ConfigData.h">
-      <Filter>ConfigData</Filter>
-    </ClInclude>
-    <ClInclude Include="..\ConfigData\ConfigStruct.h">
-      <Filter>ConfigData</Filter>
     </ClInclude>
     <ClInclude Include="..\Message\Msg_Move.pb.h">
       <Filter>Proto</Filter>
@@ -167,8 +164,8 @@
     <ClInclude Include="GameObject\BulletObject.h">
       <Filter>SceneObject</Filter>
     </ClInclude>
-    <ClInclude Include="..\ConfigData\CppSQLite3.h">
-      <Filter>ConfigData</Filter>
+    <ClInclude Include="..\StaticData\CppSQLite3.h">
+      <Filter>StaticData</Filter>
     </ClInclude>
     <ClInclude Include="GameObject\MapObject.h">
       <Filter>SceneObject</Filter>
@@ -179,8 +176,32 @@
     <ClInclude Include="GridManager.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="..\ConfigData\SkillStruct.h">
-      <Filter>ConfigData</Filter>
+    <ClInclude Include="..\StaticData\SkillStruct.h">
+      <Filter>StaticData</Filter>
+    </ClInclude>
+    <ClInclude Include="GameStruct.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\StaticData\StaticData.h">
+      <Filter>StaticData</Filter>
+    </ClInclude>
+    <ClInclude Include="..\StaticData\StaticStruct.h">
+      <Filter>StaticData</Filter>
+    </ClInclude>
+    <ClInclude Include="..\StaticData\ConfigDefine.h">
+      <Filter>StaticData</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Message\Msg_LoginCltData.pb.h">
+      <Filter>Proto</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneLogic\SceneLogic_Team.h">
+      <Filter>Scenelogic</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneLogic\WinCondition.h">
+      <Filter>Scenelogic</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneLogic\SceneLogic_Base.h">
+      <Filter>Scenelogic</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

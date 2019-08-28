@@ -15,10 +15,16 @@
 #include <algorithm>
 #include <assert.h>
 #include <set>
+#include <deque>
+#include <mutex>
 
 #include "CheckMacroDefine.h"
 
 #include "Platform.h"
+
+#include "Log.h"
+#include "CommonFunc.h"
+#include "CommonConvert.h"
 
 #endif
 
